@@ -10,6 +10,8 @@
 8×B300 上运行 veRL `separate_async` 训练流水线。外部评测使用 SWE-bench Verified 和
 DeepSWE。
 
+模型与 checkpoint 的 full / subset 成绩见 [Evaluation Result](docs/evaluation_result.md)。
+
 SWE-Smith 只保留为已经验证过的基础设施/吞吐 smoke fixture，不再是研究训练集或评测集。
 
 ## Training / evaluation recipe
