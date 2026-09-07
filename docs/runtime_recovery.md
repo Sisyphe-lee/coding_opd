@@ -1,46 +1,43 @@
-# Runtime recovery after container replacement
+# Runtime recovery recipe
 
-## Storage contract
+Keep models, runtime parquet, frozen metadata, completed records, verifier sources,
+and portable OCI archives on durable storage. Container-local system packages,
+overlay image stores, and JIT caches may need reinstalling or rebuilding.
 
-Keep models, datasets, completed records, source bundles, OCI archives and Python
-dependencies under `/personal/coding_opd_runtime`. The checkout `.venv` now points
-to `/personal/coding_opd_runtime/environments/coding-opd-py312` (Python 3.12).
-Cache Python downloads under `cache/uv` and system package downloads under
-`cache/apt`. Host-installed Podman/crun packages still require reinstalling after
-a container replacement; cached packages are recovery inputs, not executables.
+Use a filesystem compatible with native overlay for the Podman store. Copying an
+active overlay directory onto an unsupported network filesystem is not a portable
+backup strategy; retain verified OCI archives and re-import them instead.
 
-The runtime Podman overlay store remains `/workspaces/coding-opd-podman-overlay`.
-It is disposable. On 2026-09-07 a native-overlay probe on CPFS failed with
-`upper fs missing required features` and failed upper xattrs; `/dev/fuse` was
-absent. Do not copy the active overlay directory to CPFS as a portable backup.
-Keep OCI archives and pinned verifier sources and re-import them instead.
+## Restore dependencies and images
 
-## Restore and resume
+Provision the Python and system dependencies from [environment.md](environment.md).
+Restore the image sets corresponding to the frozen manifests described in
+[datasets.md](datasets.md), not an obsolete training split. R2E-512 includes R2E-128.
+DeepSWE requires both task images and independently built verifier images.
 
-`scripts/restore_runtime_and_resume_student.sh` serially restores DeepSWE agent
-and verifier images, R2E-512 (including R2E-128), and canonical Verified-500.
-It checks required images, a real isolated sandbox, and the test suite before
-resuming Student on GPUs 0–3, four TP=1 replicas with four task slots each.
-It never stops existing GPU processes and refuses an occupied GPU (>20 GiB).
-The importer stops adding images if runtime disk free space falls below 100 GiB.
+`scripts/restore_runtime_and_resume_student.sh` is an optional deployment-specific
+helper. It restores DeepSWE, R2E-512, and Verified-500 serially, checks images and a
+real sandbox, then launches Student evaluation. It assumes pre-provisioned archives
+and source bundles, working OSS authorization, and the directory layout in the script.
+Supply your own `OPD_OSS_PREFIX` if the verifier source archive must be downloaded.
+The importer requires at least 100 GiB free before adding images.
 
-Prerequisites: restored Python environment; podman, skopeo, crun and working OSS
-authorization; complete R2E-512 and DeepSWE archives on Personal. The Verified
-downloader must publish its final archive only after size and SHA256 checks.
-The DeepSWE source backup is:
-`${OPD_OSS_PREFIX}/installers/deepswe-v1.1-tasks-0b9fabbb.tar.gz` (supply your own prefix).
-The unpacked source is checked against the frozen tree hash before image builds.
+The helper's launch is fixed to GPUs 0–3, TP1, four tasks per replica; it refuses
+GPUs using more than 20 GiB but that threshold is not a substitute for ownership
+inspection. To use a different allocation, restore/check assets separately and
+invoke the evaluation launcher with explicit resource settings.
 
-Before invoking, require local/remote clean `lcy-dev` Git parity and passing local
-tests. Export `EXPECTED_GIT_SHA` (recovery commit), `RESUME_FROM_RESULT`, the
-explicitly reviewed `RESUME_SOURCE_GIT_SHA`, and a unique `RUN_NAME`. Launch with
-`nohup`, redirected logs and stdin `/dev/null`. No ssctl port is persisted.
+## Resume evaluation without changing its meaning
 
-The prior eight-GPU phase `verified_student_full_8gpu_c8_resume_20260906` retained
-216 completed tasks (111 passed) and added no records before the environment
-failed. Resource-only resume imports these records with their exact original
-provenance. Model/sampling/context/commit requirements and official grading are
-unchanged; the pending auto-compaction experiment must not be mixed into this run.
-Failures during recovery stop the pipeline before evaluation. An incomplete import
-can be rerun and skips existing images; an incomplete archive extraction requires
-inspection rather than deletion or overwriting.
+- Stop only the intended source run, retaining result.json, per-task records, and logs.
+- Use a new run/output directory and set `RESUME_FROM_RESULT` to the stopped source.
+- Keep the same model, dataset, sampling, context, and scoring protocol. Only supported
+  resource-allocation fields may change. Code changes require an explicitly reviewed
+  `RESUME_SOURCE_GIT_SHA`; do not approve a semantic change as a resource-only resume.
+- Preserve all completed records, including zeros. Incomplete tasks restart from scratch.
+- Verify inherited counts and task IDs before interpreting new results.
+
+Require clean code parity and passing tests before launch. Detach long-running jobs
+with redirected logs and stdin from `/dev/null`. Do not terminate other projects'
+processes. An incomplete import can skip existing images; inspect partial extraction
+or checksum failures rather than deleting unrelated storage.

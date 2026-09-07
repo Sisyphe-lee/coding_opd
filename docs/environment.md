@@ -1,6 +1,6 @@
 # Coding OPD environment
 
-This document describes the environment currently used by Coding OPD. Dataset selection and
+This document specifies the reproducible Coding OPD environment recipe. Dataset selection and
 frozen task manifests are documented separately in [`datasets.md`](datasets.md); measured
 SWE-Smith throughput is recorded in [`performance_optimization.md`](performance_optimization.md).
 
@@ -20,6 +20,10 @@ The project uses the following pinned sources and package versions:
 | Transformers | 5.9.0 |
 | datasets | 5.0.0 |
 | Ray | 2.55.1 |
+| FlashAttention | 2.8.3 |
+| fla-core / flash-linear-attention | 0.5.2 / 0.5.2 |
+| SWE-bench test harness | 4.1.0 |
+| Codex CLI reference binary | 0.145.0 (installed separately; not supplied by Python bootstrap) |
 
 Python packages are resolved from the pinned `third_party/verl/uv.lock` with the FSDP and vLLM
 extras. Uni-Agent is installed without its nested veRL checkout; imports resolve to the
@@ -36,8 +40,9 @@ Both profiles use a repository-root `.venv` and the same source commits:
 - `scripts/bootstrap_python_env.sh dev` creates the lightweight local CPU environment for
   editing, tests, data preparation, and configuration validation. It does not contain model
   checkpoints or the full CUDA training stack.
-- `scripts/bootstrap_python_env.sh train` creates the remote CUDA/FSDP/vLLM environment. In the
-  Robby checkout, `.venv` points to `/var/lib/coding-opd-venv`.
+- `scripts/bootstrap_python_env.sh train` creates the CUDA/FSDP/vLLM environment. Keep `.venv`
+  at the checkout root, or symlink it to your provisioned environment on durable storage.
+  Do not assume that container-local Python packages survive container replacement.
 
 The remote machine has 8 NVIDIA B300 GPUs with approximately 275 GiB visible memory per GPU,
 NV18 links, about 1 TiB host RAM, and 256 CPUs. Some system interfaces incorrectly report the
@@ -76,15 +81,21 @@ does not include tmux.
 
 ## Nested Docker and image delivery
 
-The outer Robby container has no host Docker socket. `scripts/bootstrap_docker_daemon.sh` starts
-a project-scoped rootful nested daemon using `/var/lib/coding-opd-docker`. It tries `overlay2`
-first and falls back to `vfs`; `vfs` is slower and consumes more disk.
+The Codex configurations use `scripts/podman_sandbox`: native overlay at
+`/workspaces/coding-opd-podman-overlay`, runroot `/run/coding-opd-podman-overlay`, and `crun`.
+The reference system tool versions are Podman 4.9.3, Skopeo 1.13.3, and crun 1.14.1.
+These are system dependencies, not Python packages. Provision an overlay-compatible filesystem
+and inspect permissions before use; paths can be overridden through the wrapper's environment.
+
+For the alternative Docker backend, `scripts/bootstrap_docker_daemon.sh` starts a project-scoped
+nested daemon using `/var/lib/coding-opd-docker`. It tries `overlay2` first and falls back to
+`vfs`; `vfs` is slower and consumes more disk. Do not confuse this daemon with the Podman store.
 
 The outer container cannot program host NAT rules, so the nested daemon disables bridge
 networking and iptables. Agent-controlled task containers must use `--network none`; do not give
 them host networking.
 
-Robby does not pull task images from public registries. Initial acquisition happens on a machine
+For machines without public registry access, initial acquisition happens on a machine
 with registry access, preferably through a verified mainland Docker Hub mirror and with the
 workstation HTTP(S) proxy explicitly bypassed:
 
@@ -97,32 +108,25 @@ your own OSS project prefix (`OPD_OSS_PREFIX`), under `docker_images/`. Repeated
 that OSS copy. Only images selected by the frozen R2E-128/R2E-512 manifests should be
 materialized; there is no requirement to download the complete upstream task pool.
 
-## Current validation status
+## Reproduction preflight
 
-Completed:
+1. Initialize the three pinned top-level submodules and install the chosen Python profile.
+   Use the lock and bootstrap together: the bootstrap deliberately overrides CUDA wheels and
+   adds explicitly versioned compatibility packages. Optional OSS delivery requires your own
+   `OPD_OSS_PREFIX`; no private archive access is included.
+2. Provision the Student and Teacher weights. Directory names do not pin weight bytes: record
+   model source revision and file hashes for each experiment, or identify the exact OPD export.
+3. Install the reference Codex binary and system container tools. The YAML files contain bind
+   mount paths; adapt `TASK_CONFIG` as well as launcher paths when using another machine.
+4. Fetch fixed dataset revisions, materialize the selected frozen pools, import task images,
+   and build DeepSWE verifier images. Check image availability before model startup.
+5. Keep vLLM/Triton/Inductor JIT caches on local disk using `VLLM_CACHE_ROOT`,
+   `TRITON_CACHE_DIR`, and `TORCHINDUCTOR_CACHE_DIR`. Keep results and portable OCI backups durable.
+6. Run all project tests and an isolated sandbox check. Inspect GPU ownership and host resources.
+   Training requires a dedicated Ray cluster; the Codex evaluator does not require Ray.
+7. Record code commit, resolved package/system versions, model identity, dataset manifest hashes,
+   image digests, sampling configuration, and resource settings with the run. Keep code parity
+   between development and execution environments.
 
-- local and remote environment import/tests;
-- CUDA kernels and vLLM model loading on B300;
-- nested Docker startup and imported-image execution;
-- one real Orange3 trajectory, deterministic R2E tests, and reward calculation;
-- aligned Qwen teacher logprobs and Qwen student K3 loss/backward;
-- one optimizer step through the complete R2E path;
-- eight-GPU asynchronous infrastructure/throughput validation using the SWE-Smith fixture.
-- four optimizer steps on the frozen R2E-128 runtime pool;
-- a two-process R2E-128 checkpoint save/resume run through global step 2, including restoration of
-  all four FSDP model/optimizer/RNG/LR-scheduler shards plus dataloader state and final HF export;
-- code and validation gates for manifest-backed SWE-bench Verified / DeepSWE evaluation.
-
-The end-to-end R2E smoke completed with `training/global_step=1`, distillation loss `0.08714`,
-gradient norm `3.48986`, and reward `0.9`. This validates the integration, not model quality or
-the frozen training pools.
-
-Still pending:
-
-- materialize and verify R2E-512 (not required for the checkpoint/resume milestone);
-- materialize the v2 Verified/DeepSWE runtime bundles and their selected images;
-- build DeepSWE's separate verifier images and run the first quick external evaluations.
-
-Before remote GPU work, run `.venv/bin/pytest -q` both locally and remotely and require all
-collected project tests to pass. Formal runs additionally require a dedicated Ray cluster,
-known-free GPUs, and local/remote Git SHA parity as described in `AGENTS.md`.
+This document is a configuration recipe, not a deployment progress log or a claim that a fresh
+checkout contains models, datasets, prebuilt images, or completed evaluation results.

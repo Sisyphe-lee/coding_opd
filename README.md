@@ -12,7 +12,7 @@ DeepSWE。
 
 SWE-Smith 只保留为已经验证过的基础设施/吞吐 smoke fixture，不再是研究训练集或评测集。
 
-## 当前已验证基线
+## Training / evaluation recipe
 
 | 项目 | 默认设置 |
 |---|---|
@@ -86,7 +86,7 @@ bash scripts/bootstrap_docker_daemon.sh
 本地不保存模型 checkpoint，也不执行正式训练。模型、数据集、Docker archive、日志和
 checkpoint 都不进入 Git。机器路径、镜像下载和安全约束见 [`AGENTS.md`](AGENTS.md)。
 
-## 当前数据
+## 固定数据集与 subset
 
 训练和评测 task IDs 已冻结在 `configs/dataset_manifests/`：
 
@@ -99,9 +99,11 @@ checkpoint 都不进入 Git。机器路径、镜像下载和安全约束见 [`AG
 见 [`docs/datasets.md`](docs/datasets.md)。Verified 和 DeepSWE 永不进入梯度。R2E task
 pool 大小与 rollout budget 是两个概念，不能为了缩短一次运行而改变冻结 IDs。
 
-当前四个 manifest 已完成，远端 R2E-128 parquet 与镜像已物化；R2E-512 和新版外部评测
-runtime bundle 仍待物化。旧的 SWE-Smith debug/eval bundle 与 R2E-2,048 split 均不属于
-当前研究数据协议。
+仓库包含四份当前 manifest（R2E-128、R2E-512、Verified-64、DeepSWE-Tura20）和一份
+历史 Verified-50 清单。直接消费冻结 task IDs，不要重新抽样。全量评测分别消费固定
+revision 的 Verified-500 和 DeepSWE-113；部署时自行生成 runtime parquet 和镜像清单。
+清单中的镜像名/tag 不等同于不可变 image digest，复现实验应另行保存实际使用的 digest。
+旧 SWE-Smith debug/eval bundle 与 R2E-2,048 split 不属于研究数据协议。
 
 ## R2E-128 checkpoint / resume 短训
 
@@ -120,9 +122,8 @@ bash scripts/run_r2e128_checkpoint_resume.sh
 状态，不作为吞吐基准。`validate_training_checkpoint.py` 会逐 rank 检查 actor shard、
 optimizer、extra state、dataloader marker，以及可选的 HF 权重。
 
-该流程已在 B300 上用冻结 R2E-128 pool 完成首次两进程实测：step 1 checkpoint 经独立校验后，
-新进程恢复全部四个 actor rank 的 model、optimizer、RNG、LR scheduler 和 dataloader 状态，
-完成 step 2 并导出可供评测使用的 HF 权重。该结果只验证 save/resume 正确性，不代表模型质量。
+复现时需检查全部四个 actor rank 的 model、optimizer、RNG、LR scheduler 和 dataloader
+状态是否恢复，并验证 HF 导出权重可读取。save/resume 检查不作为模型质量结论。
 
 ## 外部评测入口
 
@@ -148,8 +149,8 @@ DeepSWE 还需从每个 task 的 `tests/` 离线构建独立 verifier image；�
   /personal/coding_opd_runtime/datasets/coding_opd_eval_v2/deepswe/quick.parquet
 ```
 
-Verified-64 使用独立的新 bundle，不覆盖仍被运行中评测引用的 v2/Verified-50 数据。
-当前 Codex 入口不需要 Ray；快速评测必须显式设置 `EVAL_TIER=quick`：
+Verified-64 使用独立 bundle，不覆盖或重命名历史 Verified-50 数据。
+Codex 入口不需要 Ray；快速评测必须显式设置 `EVAL_TIER=quick`：
 
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 TASKS_PER_REPLICA=8 \
@@ -175,6 +176,12 @@ bash scripts/run_external_eval.sh deepswe
 
 评测结果按 task ID 写入 `coding_opd_runtime/eval_results/`；失败或缺失的 rollout 按 0 计入
 分母，避免只对成功返回的 session 求均值。
+
+全量测评显式设置 `EVAL_TIER=full`，分别对 Student 和 Teacher 执行一次；DeepSWE 使用
+`BENCHMARK=deepswe bash scripts/run_deepswe_codex_eval.sh`。通用 Codex launcher 默认是
+`canary`，不能把默认调试运行当成 quick/full。固定的采样、超时、补丁提取和评分规则见
+[`docs/datasets.md`](docs/datasets.md#评测执行协议)，依赖版本见
+[`docs/environment.md`](docs/environment.md)。GPU 数量、TP 和并发是资源参数，不改变题集。
 
 ## 运行已验证的八卡性能 smoke
 

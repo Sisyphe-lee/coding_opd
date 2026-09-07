@@ -120,8 +120,9 @@ DeepSWE 官方没有命名为 quick 的 subset。项目采用公开且可复现�
 | [`swebench_verified_64.json`](../configs/dataset_manifests/swebench_verified_64.json) | 64 | `7a684848015a2f24522bcd8747ba6e671ec18abdda8977649b46a5243aa750ee` |
 | [`deepswe_tura20.json`](../configs/dataset_manifests/deepswe_tura20.json) | 20 | `ff015d8b828d5f9cf225c95cdad6f038ea9e2581d97cf592e3e4c6c3cd4baa10` |
 
-每个 manifest 记录 ordered task IDs、source revision、repository/language/difficulty 分布、
-镜像名和抽样规则。另一个 session 下载环境时应直接消费 `tasks[]`，不要重新抽样，例如：
+Manifest 记录 ordered task IDs、source revision、适用的 repository/language/difficulty
+分布和抽样规则。R2E 与 Verified 清单还直接记录镜像名；DeepSWE 镜像从固定上游任务配置
+解析。下载环境时应直接消费 `tasks[]`，不要重新抽样，例如：
 
 ```bash
 jq -r '.tasks[].docker_image' configs/dataset_manifests/r2e_train_128.json
@@ -166,21 +167,54 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
 生成脚本会核验 R2E=4,522、Verified=500、DeepSWE=113、Tura20=20，并校验 DeepSWE/Tura
 源 JSON 的内容哈希。项目测试还会检查 task 唯一性、128/512 嵌套和 quick eval 覆盖。
 
-## 当前部署状态与历史数据
+## Task ID、镜像与 runtime 数据的对应关系
 
-- 四个 manifest 已冻结并进入 Git。
-- R2E/Verified 源 metadata 已在本地 `data/manifest_sources/` 下载；该目录被 Git 忽略，
-  不是运行时数据源。
-- R2E-128 task images 与训练 parquet 已在当前 Robby runtime 物化并通过 smoke；R2E-512
-  尚未物化。
-- Verified/DeepSWE 的 manifest 驱动 materializer、独立 launcher 和 evaluator 已进入代码；
-  当前 Robby runtime 仍需生成 v2 parquet、导入 task images，并构建 DeepSWE 的独立
-  verifier images 后做首次端到端验证。
-- DeepSWE task corpus 固定为 `datacurve-ai/deep-swe@0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`，
-  `tasks/` 的内容哈希为
-  `207e1309bfbaebdf9186123ea4e74732c9348c395687af9bd48e01193a8bd5d9`；materializer 同时
-  校验该 tree 与官方 `tasks.json` 哈希，避免只对上 task ID 却使用了不同 verifier。
-- 旧的 SWE-Smith 16-task debug、32-row repeat fixture、SWE-Smith 8/32/128 eval bundle 和
-  旧 R2E-2,048 split 都是历史/基础设施资产，不属于当前研究数据协议。
-- 当前 SWE-Smith 八卡 smoke 只用于复现已测吞吐和训练基础设施，不能产生当前数据方案下的
-  模型质量结论。
+| 题集 | 冻结身份 | 镜像映射 / 物化入口 |
+|---|---|---|
+| R2E-128 / R2E-512 | manifest 的 `task_id`、`commit_hash` | `tasks[].docker_image`；`scripts/materialize_r2e_manifest.py` |
+| Verified-64（历史 50） | manifest 的 `task_id` | `tasks[].docker_image`；`scripts/materialize_swebench_verified.py` |
+| Verified-500 | 固定 HF revision 的全部 500 个 instance ID | `coding_opd.eval_data.verified_image()`；同一 Verified materializer |
+| DeepSWE-Tura20 / 113 | subset manifest / 固定官方 `tasks.json` | 上游 `task.toml` 的 `[environment].docker_image`；`scripts/materialize_deepswe_eval.py` |
+
+Verified 镜像规则为 `swebench/sweb.eval.x86_64.<instance_id>`，instance ID 转小写并将
+`__` 替换为 `_1776_`。DeepSWE 还需运行 `scripts/prepare_deepswe_verifier_images.py`
+构建独立 verifier；agent 环境不能看到隐藏测试。所有 materializer 的参数以 `--help` 为准。
+
+DeepSWE task corpus 固定为 `datacurve-ai/deep-swe@0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`，
+`tasks/` tree SHA-256 为 `207e1309bfbaebdf9186123ea4e74732c9348c395687af9bd48e01193a8bd5d9`。
+Materializer 同时核验 tree 和官方 `tasks.json`，避免同名任务对应不同 verifier。
+
+这里区分三类资产：
+
+- **Git 中的冻结 manifest**：定义成员、顺序和数据源，不包含 parquet 或镜像层。
+- **部署生成的 runtime bundle**：包含 parquet、运行时 manifest 和完整镜像列表；不得通过
+  修改 runtime 数据改变冻结 subset。Verified-64 与历史 Verified-50 应使用不同目录。
+- **镜像与 verifier 构建产物**：部署时获取/构建；名称/tag 不是不可变 digest。严格复现时
+  另行记录 agent/verifier 镜像 digest、构建输入和 OCI archive 哈希。
+
+源 metadata、runtime parquet、模型、镜像层和结果不进入 Git。下载后检查固定 revision，
+物化后运行镜像完整性检查。旧 SWE-Smith fixture 和 R2E-2,048 不属于研究数据协议。
+
+## 评测执行协议
+
+- 两个 benchmark 均使用本项目 Codex harness：模型通过本地 vLLM 执行编码任务，
+  不是 mini-SWE-agent，也不宣称与 Claude Code 的 agent 行为完全相同。
+- Student 使用 `SAMPLING_PROFILE=student`（temperature 0.6），Teacher 使用
+  `SAMPLING_PROFILE=teacher`（temperature 1.0）；两者 top_p 0.95、top_k 20、min_p 0、
+  presence_penalty 0、repetition_penalty 1。角色必须显式指定，不能从 checkpoint 目录猜测。
+- 上下文上限 262144，reasoning effort `xhigh`、summary `auto`；固定配置以
+  `configs/deepswe_codex.yaml`、`configs/swebench_codex.yaml` 和 launcher 为准。
+- Agent 预算 10800 秒，verifier 预算 1800 秒；sandbox runtime timeout 11100 秒。
+  Agent 正常退出或达到预算后，测评器独立评分，不以模型自述“完成”作为成功。
+- Verified 收集相对 base commit 的补丁，不要求 git commit；DeepSWE 使用其任务指令和
+  已提交补丁。不要为提高分数追加自动提交或重复循环纠正等未纳入协议的行为。
+- 使用 benchmark 的测试规则判定成功；完整报告保留所有选中任务作为分母，执行失败计零。
+  未完成运行不能当成最终成功率。`canary` 仅用于接通检查，不是固定 quick panel。
+- Task 容器无网络，通过本地 socket 访问模型。示例配置禁用 cgroup；不能据此宣称
+  与官方云端 CPU、RAM、磁盘资源限制完全等价，也不作资源等价的耗时比较。
+- GPU/TP/任务并发允许按机器调整，数据成员、采样和评分语义保持不变。资源-only resume
+  保留全部已完成结果（包括零分），未完成任务重新开始，不筛掉失败结果。
+
+训练仅消费冻结 R2E pool。Verified 和 DeepSWE 不进入梯度、Teacher 监督或奖励塑形；
+quick panel 用于预先约定的回归检查，全量用于重要 checkpoint 和最终报告，不根据正在
+查看的分数改题、改 verifier 或自适应调参。
