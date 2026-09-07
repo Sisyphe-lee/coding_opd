@@ -1,0 +1,32 @@
+.venv
+.venv/
+.tools/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Runtime state and large artifacts
+models/
+checkpoints/
+data/
+outputs/
+logs/
+runtime/
+docker-cache/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.tar
+*.tar.gz
+*.tar.zst
+
+# Local credentials and transient config
+.env
+.env.*
+!.env.example
+credentials/
+private/

@@ -1,0 +1,188 @@
+{
+  "count": 20,
+  "difficulty_counts": {
+    "easy": 5,
+    "hard": 5,
+    "medium-easy": 5,
+    "medium-hard": 5
+  },
+  "frozen_date": "2026-09-02",
+  "language_counts": {
+    "go": 4,
+    "javascript": 4,
+    "python": 4,
+    "rust": 4,
+    "typescript": 4
+  },
+  "name": "deepswe_tura20",
+  "nested_in": "DeepSWE v1.1 full evaluation (113 tasks)",
+  "purpose": "quick_evaluation",
+  "schema": "coding_opd.dataset_manifest.v1",
+  "selection": {
+    "difficulty_bands": [
+      "easy",
+      "medium-easy",
+      "medium-hard",
+      "hard"
+    ],
+    "language_quota": 4,
+    "method": "public Tura20 canonical subset"
+  },
+  "source": {
+    "benchmark": "DataCurve DeepSWE",
+    "benchmark_version": "v1.1",
+    "official_full_count": 113,
+    "official_tasks_sha256": "bae967f6472943564c3fc5232fba3c8e0ac465c1be5ccf9dd4895d4ee9df6242",
+    "official_tasks_url": "https://deepswe.datacurve.ai/artifacts/v1.1/tasks.json",
+    "task_repository": "datacurve-ai/deep-swe",
+    "task_repository_revision": "0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea",
+    "task_tree_sha256": "207e1309bfbaebdf9186123ea4e74732c9348c395687af9bd48e01193a8bd5d9",
+    "selection_repository": "Tura-AI/benchmark",
+    "selection_revision": "da58a15d35b5284db2abfd233378093a2689dc5c",
+    "selection_sha256": "de633d8d686ecdbfd46a37fb768c4fb207c80a9de86ae0c3599d825a1919dc21",
+    "selection_url": "https://raw.githubusercontent.com/Tura-AI/benchmark/da58a15d35b5284db2abfd233378093a2689dc5c/deep_swe/canonical_tasks.json"
+  },
+  "task_id_sha256": "ff015d8b828d5f9cf225c95cdad6f038ea9e2581d97cf592e3e4c6c3cd4baa10",
+  "tasks": [
+    {
+      "base_commit_hash": "0bdc95715fa58f64e3fd6e63b0f89be8733cbbab",
+      "difficulty_band": "easy",
+      "language": "go",
+      "repository": "rhysd/actionlint",
+      "task_id": "actionlint-action-pinning-lint"
+    },
+    {
+      "base_commit_hash": "cb1b3b671d0ee9fa9da9f7b02f86967953ffd10a",
+      "difficulty_band": "medium-easy",
+      "language": "go",
+      "repository": "abs-lang/abs",
+      "task_id": "abs-stepped-slices"
+    },
+    {
+      "base_commit_hash": "fcb76d1ece0c3edc2548c39aa5b170475d2261bb",
+      "difficulty_band": "medium-hard",
+      "language": "go",
+      "repository": "traefik/yaegi",
+      "task_id": "yaegi-go-embed-directives"
+    },
+    {
+      "base_commit_hash": "0dd6132e0c58edbd9b1a5f7ffd00dfab1e6085ad",
+      "difficulty_band": "hard",
+      "language": "go",
+      "repository": "TomWright/dasel",
+      "task_id": "dasel-html-document-format"
+    },
+    {
+      "base_commit_hash": "061c97f8a01bf9e721835978b039303c5051501c",
+      "difficulty_band": "easy",
+      "language": "python",
+      "repository": "narwhals-dev/narwhals",
+      "task_id": "narwhals-rolling-window-suite"
+    },
+    {
+      "base_commit_hash": "5781334aa654972fdc749003e7c1e93e6d277110",
+      "difficulty_band": "medium-easy",
+      "language": "python",
+      "repository": "numba/numba",
+      "task_id": "numba-stencil-boundary-modes"
+    },
+    {
+      "base_commit_hash": "765f00d3f202f83f61d03f882f80a2d5142d81f8",
+      "difficulty_band": "medium-hard",
+      "language": "python",
+      "repository": "PyCQA/bandit",
+      "task_id": "bandit-incremental-cache-control"
+    },
+    {
+      "base_commit_hash": "7cef35b",
+      "difficulty_band": "hard",
+      "language": "python",
+      "repository": "langchain-ai/langchain",
+      "task_id": "langchain-request-coalescing"
+    },
+    {
+      "base_commit_hash": "82a0888cb2c87a6123e05424b528f8e8c9b3e426",
+      "difficulty_band": "easy",
+      "language": "typescript",
+      "repository": "capricorn86/happy-dom",
+      "task_id": "happy-dom-abort-pending-body-reads"
+    },
+    {
+      "base_commit_hash": "1f2a18664f8aded292707fcafb01ff15ea33d3b8",
+      "difficulty_band": "medium-easy",
+      "language": "typescript",
+      "repository": "dynamodb-toolbox/dynamodb-toolbox",
+      "task_id": "dynamodb-toolbox-conditional-attribute-requirements"
+    },
+    {
+      "base_commit_hash": "82ac179c1de4c216c4e333093044fac643303f0c",
+      "difficulty_band": "medium-hard",
+      "language": "typescript",
+      "repository": "jeffijoe/awilix",
+      "task_id": "awilix-async-container-initialization"
+    },
+    {
+      "base_commit_hash": "539cbffd0a13b18e9c65eb84dd35e6596e403158",
+      "difficulty_band": "hard",
+      "language": "typescript",
+      "repository": "slab/quill",
+      "task_id": "quill-shared-toolbar-focus"
+    },
+    {
+      "base_commit_hash": "e1f76e285b9ad68a952b7cf5297bbb7ab91e6028",
+      "difficulty_band": "easy",
+      "language": "rust",
+      "repository": "wasmi-labs/wasmi",
+      "task_id": "wasmi-trap-coredumps"
+    },
+    {
+      "base_commit_hash": "227883606023d62275fb48701aeac90f2b604143",
+      "difficulty_band": "medium-easy",
+      "language": "rust",
+      "repository": "sharkdp/fd",
+      "task_id": "fd-deterministic-multi-key-sorting"
+    },
+    {
+      "base_commit_hash": "70409a5052984325dccfdc5f6520818568a81f39",
+      "difficulty_band": "medium-hard",
+      "language": "rust",
+      "repository": "boa-dev/boa",
+      "task_id": "boa-hierarchical-evaluation-cancellation"
+    },
+    {
+      "base_commit_hash": "79dd30d11aab6f0fba3cd79bd48f456209b966b3",
+      "difficulty_band": "hard",
+      "language": "rust",
+      "repository": "pest-parser/pest",
+      "task_id": "pest-character-class-coalescing"
+    },
+    {
+      "base_commit_hash": "7795050a749bd1111cbbdd9d0219b27226a8e710",
+      "difficulty_band": "easy",
+      "language": "javascript",
+      "repository": "yjs/yjs",
+      "task_id": "yjs-map-conflict-detection"
+    },
+    {
+      "base_commit_hash": "158f61ea91c9613d2011c41ee9be40ada1d7a307",
+      "difficulty_band": "medium-easy",
+      "language": "javascript",
+      "repository": "testem/testem",
+      "task_id": "testem-per-launcher-reports"
+    },
+    {
+      "base_commit_hash": "88e3d965c0b1628642a30a841745b410d6835052",
+      "difficulty_band": "medium-hard",
+      "language": "javascript",
+      "repository": "csstree/csstree",
+      "task_id": "csstree-shorthand-expansion-compression"
+    },
+    {
+      "base_commit_hash": "89bede495dc2c85e1c57ba627a18526f71d57396",
+      "difficulty_band": "hard",
+      "language": "javascript",
+      "repository": "KaTeX/KaTeX",
+      "task_id": "katex-multicolumn-array-spans"
+    }
+  ]
+}

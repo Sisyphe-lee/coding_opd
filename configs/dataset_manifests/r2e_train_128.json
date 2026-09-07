@@ -1,0 +1,1652 @@
+{
+  "count": 128,
+  "frozen_date": "2026-09-02",
+  "image_count": 128,
+  "name": "r2e_train_128",
+  "nested_in": "r2e_train_512",
+  "purpose": "training",
+  "repo_counts": {
+    "aiohttp": 11,
+    "coveragepy": 7,
+    "datalad": 9,
+    "numpy": 18,
+    "orange3": 14,
+    "pandas": 25,
+    "pillow": 16,
+    "pyramid": 9,
+    "scrapy": 9,
+    "tornado": 10
+  },
+  "schema": "coding_opd.dataset_manifest.v1",
+  "seed": 42,
+  "selection": {
+    "complexity_fields": [
+      "num_non_test_files",
+      "num_non_test_func_methods",
+      "num_non_test_lines"
+    ],
+    "repo_quotas": {
+      "aiohttp": 11,
+      "coveragepy": 7,
+      "datalad": 9,
+      "numpy": 18,
+      "orange3": 14,
+      "pandas": 25,
+      "pillow": 16,
+      "pyramid": 9,
+      "scrapy": 9,
+      "tornado": 10
+    },
+    "repository_allocation": "largest_remainder(N_repo ** 0.5)",
+    "stratum_quotas": {
+      "aiohttp": {
+        "q128_bin_0": 3,
+        "q128_bin_1": 3,
+        "q128_bin_2": 3,
+        "q128_bin_3": 2
+      },
+      "coveragepy": {
+        "q128_bin_0": 2,
+        "q128_bin_1": 2,
+        "q128_bin_2": 2,
+        "q128_bin_3": 1
+      },
+      "datalad": {
+        "q128_bin_0": 3,
+        "q128_bin_1": 2,
+        "q128_bin_2": 2,
+        "q128_bin_3": 2
+      },
+      "numpy": {
+        "q128_bin_0": 5,
+        "q128_bin_1": 5,
+        "q128_bin_2": 4,
+        "q128_bin_3": 4
+      },
+      "orange3": {
+        "q128_bin_0": 4,
+        "q128_bin_1": 4,
+        "q128_bin_2": 3,
+        "q128_bin_3": 3
+      },
+      "pandas": {
+        "q128_bin_0": 7,
+        "q128_bin_1": 6,
+        "q128_bin_2": 6,
+        "q128_bin_3": 6
+      },
+      "pillow": {
+        "q128_bin_0": 4,
+        "q128_bin_1": 4,
+        "q128_bin_2": 4,
+        "q128_bin_3": 4
+      },
+      "pyramid": {
+        "q128_bin_0": 3,
+        "q128_bin_1": 2,
+        "q128_bin_2": 2,
+        "q128_bin_3": 2
+      },
+      "scrapy": {
+        "q128_bin_0": 3,
+        "q128_bin_1": 2,
+        "q128_bin_2": 2,
+        "q128_bin_3": 2
+      },
+      "tornado": {
+        "q128_bin_0": 3,
+        "q128_bin_1": 3,
+        "q128_bin_2": 2,
+        "q128_bin_3": 2
+      }
+    },
+    "within_repository": "four equal-frequency static complexity bins",
+    "within_stratum_order": "sha256(seed, r2e-task, task_id)"
+  },
+  "source": {
+    "requested_dataset": "PrimeIntellect/R2E-Gym-Subset-Validated",
+    "resolved_dataset": "PrimeIntellect/R2E-Gym-Subset-Verified",
+    "revision": "151f9950e62cac613e07be1bb92e5dd19687315e",
+    "split": "train",
+    "validated_source_count": 4522
+  },
+  "task_id_sha256": "09e0c5632227b87883078bc4d53824920bdec69b53016dcd221798f7f6f91355",
+  "tasks": [
+    {
+      "commit_hash": "190f82aa2294e340e89e22bbe4fa2ff3788e5cbe",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 15
+      },
+      "docker_image": "namanjain12/pyramid_final:190f82aa2294e340e89e22bbe4fa2ff3788e5cbe",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:190f82aa2294e340e89e22bbe4fa2ff3788e5cbe"
+    },
+    {
+      "commit_hash": "2afb3baf0a091d79b13406a9960a02b34ab3018e",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 23
+      },
+      "docker_image": "namanjain12/orange3_final:2afb3baf0a091d79b13406a9960a02b34ab3018e",
+      "repo_name": "orange3",
+      "task_id": "orange3:2afb3baf0a091d79b13406a9960a02b34ab3018e"
+    },
+    {
+      "commit_hash": "e8085a70499c9297641a5135373d708a82e375fd",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 93
+      },
+      "docker_image": "namanjain12/pandas_final:e8085a70499c9297641a5135373d708a82e375fd",
+      "repo_name": "pandas",
+      "task_id": "pandas:e8085a70499c9297641a5135373d708a82e375fd"
+    },
+    {
+      "commit_hash": "e824558076f4b305fa0e4ca0f802884df77e2e57",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 10
+      },
+      "docker_image": "namanjain12/pillow_final:e824558076f4b305fa0e4ca0f802884df77e2e57",
+      "repo_name": "pillow",
+      "task_id": "pillow:e824558076f4b305fa0e4ca0f802884df77e2e57"
+    },
+    {
+      "commit_hash": "4caa50e89bcde322e6bf1ca37dc878c41d465038",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/datalad_final:4caa50e89bcde322e6bf1ca37dc878c41d465038",
+      "repo_name": "datalad",
+      "task_id": "datalad:4caa50e89bcde322e6bf1ca37dc878c41d465038"
+    },
+    {
+      "commit_hash": "7a19251d0dcdf8c446f14daea9434bfe6a311947",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 32
+      },
+      "docker_image": "namanjain12/pillow_final:7a19251d0dcdf8c446f14daea9434bfe6a311947",
+      "repo_name": "pillow",
+      "task_id": "pillow:7a19251d0dcdf8c446f14daea9434bfe6a311947"
+    },
+    {
+      "commit_hash": "fe8c0f5f2de669941015c222005be1b5e62e39ed",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/pyramid_final:fe8c0f5f2de669941015c222005be1b5e62e39ed",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:fe8c0f5f2de669941015c222005be1b5e62e39ed"
+    },
+    {
+      "commit_hash": "89d8aba76a2bb930e520590d145e3d67b2046e39",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/pandas_final:89d8aba76a2bb930e520590d145e3d67b2046e39",
+      "repo_name": "pandas",
+      "task_id": "pandas:89d8aba76a2bb930e520590d145e3d67b2046e39"
+    },
+    {
+      "commit_hash": "18de88ce1e0a176adb12bf9ee44783289c6bed63",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/aiohttp_final:18de88ce1e0a176adb12bf9ee44783289c6bed63",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:18de88ce1e0a176adb12bf9ee44783289c6bed63"
+    },
+    {
+      "commit_hash": "830e9b1678a690c7dd6058cbffbf74c71135fd9d",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 18
+      },
+      "docker_image": "namanjain12/pandas_final:830e9b1678a690c7dd6058cbffbf74c71135fd9d",
+      "repo_name": "pandas",
+      "task_id": "pandas:830e9b1678a690c7dd6058cbffbf74c71135fd9d"
+    },
+    {
+      "commit_hash": "437534b06bf7ccd744170accd4283f39eeb26e57",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/numpy_final:437534b06bf7ccd744170accd4283f39eeb26e57",
+      "repo_name": "numpy",
+      "task_id": "numpy:437534b06bf7ccd744170accd4283f39eeb26e57"
+    },
+    {
+      "commit_hash": "48a6bfb96387d35bce24e7343c44e735fb4ef13a",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/tornado_final:48a6bfb96387d35bce24e7343c44e735fb4ef13a",
+      "repo_name": "tornado",
+      "task_id": "tornado:48a6bfb96387d35bce24e7343c44e735fb4ef13a"
+    },
+    {
+      "commit_hash": "2c617599340fb4cd08618b8c396a735909c0789e",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/numpy_final:2c617599340fb4cd08618b8c396a735909c0789e",
+      "repo_name": "numpy",
+      "task_id": "numpy:2c617599340fb4cd08618b8c396a735909c0789e"
+    },
+    {
+      "commit_hash": "4579b3f7d7cc3c5c3b67a4cf35527f7869e08004",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 26
+      },
+      "docker_image": "namanjain12/datalad_final:4579b3f7d7cc3c5c3b67a4cf35527f7869e08004",
+      "repo_name": "datalad",
+      "task_id": "datalad:4579b3f7d7cc3c5c3b67a4cf35527f7869e08004"
+    },
+    {
+      "commit_hash": "7175f1c4a9858994607cfb207a0e28468ef544f6",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 14
+      },
+      "docker_image": "namanjain12/numpy_final:7175f1c4a9858994607cfb207a0e28468ef544f6",
+      "repo_name": "numpy",
+      "task_id": "numpy:7175f1c4a9858994607cfb207a0e28468ef544f6"
+    },
+    {
+      "commit_hash": "c632f72241e37182ef5bf9df11fa3fa01a8f6593",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pandas_final:c632f72241e37182ef5bf9df11fa3fa01a8f6593",
+      "repo_name": "pandas",
+      "task_id": "pandas:c632f72241e37182ef5bf9df11fa3fa01a8f6593"
+    },
+    {
+      "commit_hash": "c40cdb930b2a9335af0451ef51821d4f2838c61d",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 36
+      },
+      "docker_image": "namanjain12/tornado_final:c40cdb930b2a9335af0451ef51821d4f2838c61d",
+      "repo_name": "tornado",
+      "task_id": "tornado:c40cdb930b2a9335af0451ef51821d4f2838c61d"
+    },
+    {
+      "commit_hash": "3b5076b6b3fd7218acf445e917eb039999b61820",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pyramid_final:3b5076b6b3fd7218acf445e917eb039999b61820",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:3b5076b6b3fd7218acf445e917eb039999b61820"
+    },
+    {
+      "commit_hash": "c926d0a5b087fd7c2d0e91a54364b354f4720a39",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 76
+      },
+      "docker_image": "namanjain12/numpy_final:c926d0a5b087fd7c2d0e91a54364b354f4720a39",
+      "repo_name": "numpy",
+      "task_id": "numpy:c926d0a5b087fd7c2d0e91a54364b354f4720a39"
+    },
+    {
+      "commit_hash": "74f6579941fbe71cf7c033f53977047ac872e469",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/pandas_final:74f6579941fbe71cf7c033f53977047ac872e469",
+      "repo_name": "pandas",
+      "task_id": "pandas:74f6579941fbe71cf7c033f53977047ac872e469"
+    },
+    {
+      "commit_hash": "a6e34b28ebe636296b7151cc69ece369d7563728",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/orange3_final:a6e34b28ebe636296b7151cc69ece369d7563728",
+      "repo_name": "orange3",
+      "task_id": "orange3:a6e34b28ebe636296b7151cc69ece369d7563728"
+    },
+    {
+      "commit_hash": "5fa260aaa35d81dcbbeb15ee3891337870f77c99",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/aiohttp_final:5fa260aaa35d81dcbbeb15ee3891337870f77c99",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:5fa260aaa35d81dcbbeb15ee3891337870f77c99"
+    },
+    {
+      "commit_hash": "215b0e08332b9847f80307e989075c41d75d2d44",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/pillow_final:215b0e08332b9847f80307e989075c41d75d2d44",
+      "repo_name": "pillow",
+      "task_id": "pillow:215b0e08332b9847f80307e989075c41d75d2d44"
+    },
+    {
+      "commit_hash": "7da0d5bc19a896154252d039665d6277573a597a",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/tornado_final:7da0d5bc19a896154252d039665d6277573a597a",
+      "repo_name": "tornado",
+      "task_id": "tornado:7da0d5bc19a896154252d039665d6277573a597a"
+    },
+    {
+      "commit_hash": "25428afb7084f9adfaa54178919c1310a90741da",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 61
+      },
+      "docker_image": "namanjain12/pillow_final:25428afb7084f9adfaa54178919c1310a90741da",
+      "repo_name": "pillow",
+      "task_id": "pillow:25428afb7084f9adfaa54178919c1310a90741da"
+    },
+    {
+      "commit_hash": "abf3fe8e3814c41c9a79eac87f5b137a617d1184",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/numpy_final:abf3fe8e3814c41c9a79eac87f5b137a617d1184",
+      "repo_name": "numpy",
+      "task_id": "numpy:abf3fe8e3814c41c9a79eac87f5b137a617d1184"
+    },
+    {
+      "commit_hash": "3986eafc60d74aebbe0d5a47e0ac1f516de2039b",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/pillow_final:3986eafc60d74aebbe0d5a47e0ac1f516de2039b",
+      "repo_name": "pillow",
+      "task_id": "pillow:3986eafc60d74aebbe0d5a47e0ac1f516de2039b"
+    },
+    {
+      "commit_hash": "12a26755ae601c9b3244a4a6b55d0e880fc21864",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 17
+      },
+      "docker_image": "namanjain12/scrapy_final:12a26755ae601c9b3244a4a6b55d0e880fc21864",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:12a26755ae601c9b3244a4a6b55d0e880fc21864"
+    },
+    {
+      "commit_hash": "7550e8bb55c7a9e7f3fd68918d0a91ce845d36f4",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/tornado_final:7550e8bb55c7a9e7f3fd68918d0a91ce845d36f4",
+      "repo_name": "tornado",
+      "task_id": "tornado:7550e8bb55c7a9e7f3fd68918d0a91ce845d36f4"
+    },
+    {
+      "commit_hash": "1bbe668972a6ac3b116f44e50825c66ae5813326",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 23
+      },
+      "docker_image": "namanjain12/pyramid_final:1bbe668972a6ac3b116f44e50825c66ae5813326",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:1bbe668972a6ac3b116f44e50825c66ae5813326"
+    },
+    {
+      "commit_hash": "30362ed828bebdd58d4f1f74d70236d32547d52a",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pandas_final:30362ed828bebdd58d4f1f74d70236d32547d52a",
+      "repo_name": "pandas",
+      "task_id": "pandas:30362ed828bebdd58d4f1f74d70236d32547d52a"
+    },
+    {
+      "commit_hash": "39846565d0d98a6a9ef2ef34faad3eb620b3e9fb",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/pyramid_final:39846565d0d98a6a9ef2ef34faad3eb620b3e9fb",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:39846565d0d98a6a9ef2ef34faad3eb620b3e9fb"
+    },
+    {
+      "commit_hash": "bb02cd701f332f3e2c02a8616a7bee3d0eb323ba",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/tornado_final:bb02cd701f332f3e2c02a8616a7bee3d0eb323ba",
+      "repo_name": "tornado",
+      "task_id": "tornado:bb02cd701f332f3e2c02a8616a7bee3d0eb323ba"
+    },
+    {
+      "commit_hash": "ba9b33e63a18841cdb7cf5f912d99ccbea91dee4",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/aiohttp_final:ba9b33e63a18841cdb7cf5f912d99ccbea91dee4",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:ba9b33e63a18841cdb7cf5f912d99ccbea91dee4"
+    },
+    {
+      "commit_hash": "579a5f47523ada48497994f0c70152f617d6af2a",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 27
+      },
+      "docker_image": "namanjain12/pyramid_final:579a5f47523ada48497994f0c70152f617d6af2a",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:579a5f47523ada48497994f0c70152f617d6af2a"
+    },
+    {
+      "commit_hash": "2498b74420074dffa3a062ab7fc69dfeb88a5050",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/numpy_final:2498b74420074dffa3a062ab7fc69dfeb88a5050",
+      "repo_name": "numpy",
+      "task_id": "numpy:2498b74420074dffa3a062ab7fc69dfeb88a5050"
+    },
+    {
+      "commit_hash": "68e2c2ae8b714bc9bcbdf9e98793bb681048273a",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 16
+      },
+      "docker_image": "namanjain12/pandas_final:68e2c2ae8b714bc9bcbdf9e98793bb681048273a",
+      "repo_name": "pandas",
+      "task_id": "pandas:68e2c2ae8b714bc9bcbdf9e98793bb681048273a"
+    },
+    {
+      "commit_hash": "9ec694b69a231a8de43032711c657d253edbed9d",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/numpy_final:9ec694b69a231a8de43032711c657d253edbed9d",
+      "repo_name": "numpy",
+      "task_id": "numpy:9ec694b69a231a8de43032711c657d253edbed9d"
+    },
+    {
+      "commit_hash": "f5440cc3e1b0523b156a98ff311af61e003e95f9",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pillow_final:f5440cc3e1b0523b156a98ff311af61e003e95f9",
+      "repo_name": "pillow",
+      "task_id": "pillow:f5440cc3e1b0523b156a98ff311af61e003e95f9"
+    },
+    {
+      "commit_hash": "3fda2fe103dafa8d4d48b21c63b2321ccec9c378",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/scrapy_final:3fda2fe103dafa8d4d48b21c63b2321ccec9c378",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:3fda2fe103dafa8d4d48b21c63b2321ccec9c378"
+    },
+    {
+      "commit_hash": "d99d44a29194ba9487aa741297d41363d1d6f2e3",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/pandas_final:d99d44a29194ba9487aa741297d41363d1d6f2e3",
+      "repo_name": "pandas",
+      "task_id": "pandas:d99d44a29194ba9487aa741297d41363d1d6f2e3"
+    },
+    {
+      "commit_hash": "86555e61ce6d20da2f5e3f6e081bd80f02d6b214",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 18
+      },
+      "docker_image": "namanjain12/orange3_final:86555e61ce6d20da2f5e3f6e081bd80f02d6b214",
+      "repo_name": "orange3",
+      "task_id": "orange3:86555e61ce6d20da2f5e3f6e081bd80f02d6b214"
+    },
+    {
+      "commit_hash": "b5a965e31d82da4134b21b15a62d708cd48e03f4",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 7
+      },
+      "docker_image": "namanjain12/orange3_final:b5a965e31d82da4134b21b15a62d708cd48e03f4",
+      "repo_name": "orange3",
+      "task_id": "orange3:b5a965e31d82da4134b21b15a62d708cd48e03f4"
+    },
+    {
+      "commit_hash": "26d1cecbc9add6956220a4642b90b9ad8ad909bf",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/pandas_final:26d1cecbc9add6956220a4642b90b9ad8ad909bf",
+      "repo_name": "pandas",
+      "task_id": "pandas:26d1cecbc9add6956220a4642b90b9ad8ad909bf"
+    },
+    {
+      "commit_hash": "9e0bfc4a3dc92ac7f0fc0aff6254374045733299",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/scrapy_final:9e0bfc4a3dc92ac7f0fc0aff6254374045733299",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:9e0bfc4a3dc92ac7f0fc0aff6254374045733299"
+    },
+    {
+      "commit_hash": "fd78b8bb1aa29c9d3f0e7b2a2033657ba640edc1",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 16
+      },
+      "docker_image": "namanjain12/orange3_final:fd78b8bb1aa29c9d3f0e7b2a2033657ba640edc1",
+      "repo_name": "orange3",
+      "task_id": "orange3:fd78b8bb1aa29c9d3f0e7b2a2033657ba640edc1"
+    },
+    {
+      "commit_hash": "daa8e7dacdfc7cbad9ccb1ae8e31dfb84af123c0",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/pillow_final:daa8e7dacdfc7cbad9ccb1ae8e31dfb84af123c0",
+      "repo_name": "pillow",
+      "task_id": "pillow:daa8e7dacdfc7cbad9ccb1ae8e31dfb84af123c0"
+    },
+    {
+      "commit_hash": "8bac6eed123c68560ffdb5d7f7093ad4015a9d85",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 89
+      },
+      "docker_image": "namanjain12/numpy_final:8bac6eed123c68560ffdb5d7f7093ad4015a9d85",
+      "repo_name": "numpy",
+      "task_id": "numpy:8bac6eed123c68560ffdb5d7f7093ad4015a9d85"
+    },
+    {
+      "commit_hash": "2cf2db309dcbce5a99102d568f50e734633e2eb8",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 41
+      },
+      "docker_image": "namanjain12/numpy_final:2cf2db309dcbce5a99102d568f50e734633e2eb8",
+      "repo_name": "numpy",
+      "task_id": "numpy:2cf2db309dcbce5a99102d568f50e734633e2eb8"
+    },
+    {
+      "commit_hash": "71f0f4c78b925758768b9a4ab10859c4c76c521e",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 7
+      },
+      "docker_image": "namanjain12/coveragepy_final:71f0f4c78b925758768b9a4ab10859c4c76c521e",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:71f0f4c78b925758768b9a4ab10859c4c76c521e"
+    },
+    {
+      "commit_hash": "10217d0a2e4eb97b0050fabe3f0aeae6d43c2071",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/aiohttp_final:10217d0a2e4eb97b0050fabe3f0aeae6d43c2071",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:10217d0a2e4eb97b0050fabe3f0aeae6d43c2071"
+    },
+    {
+      "commit_hash": "b50f63430f32e9c4821a8598d57e3eca5c1c0425",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 19
+      },
+      "docker_image": "namanjain12/pillow_final:b50f63430f32e9c4821a8598d57e3eca5c1c0425",
+      "repo_name": "pillow",
+      "task_id": "pillow:b50f63430f32e9c4821a8598d57e3eca5c1c0425"
+    },
+    {
+      "commit_hash": "8351d7f3069ab53c9c2bc15bfb1a8e4ed1fcdbdb",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/orange3_final:8351d7f3069ab53c9c2bc15bfb1a8e4ed1fcdbdb",
+      "repo_name": "orange3",
+      "task_id": "orange3:8351d7f3069ab53c9c2bc15bfb1a8e4ed1fcdbdb"
+    },
+    {
+      "commit_hash": "014d8eabf0b8c3d0921ec2438d72514b34ea676b",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 4,
+        "num_non_test_lines": 44
+      },
+      "docker_image": "namanjain12/pandas_final:014d8eabf0b8c3d0921ec2438d72514b34ea676b",
+      "repo_name": "pandas",
+      "task_id": "pandas:014d8eabf0b8c3d0921ec2438d72514b34ea676b"
+    },
+    {
+      "commit_hash": "e23cbd4769b8a6e37abe80f849275559399c3aeb",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/tornado_final:e23cbd4769b8a6e37abe80f849275559399c3aeb",
+      "repo_name": "tornado",
+      "task_id": "tornado:e23cbd4769b8a6e37abe80f849275559399c3aeb"
+    },
+    {
+      "commit_hash": "6f41a9ff01a8ddb5cad728d4bb112d876ecd5b7e",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/datalad_final:6f41a9ff01a8ddb5cad728d4bb112d876ecd5b7e",
+      "repo_name": "datalad",
+      "task_id": "datalad:6f41a9ff01a8ddb5cad728d4bb112d876ecd5b7e"
+    },
+    {
+      "commit_hash": "a7c9877775421dc141b0d56a6ff1a9a00214ddf4",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/pandas_final:a7c9877775421dc141b0d56a6ff1a9a00214ddf4",
+      "repo_name": "pandas",
+      "task_id": "pandas:a7c9877775421dc141b0d56a6ff1a9a00214ddf4"
+    },
+    {
+      "commit_hash": "169972546b699f01813131d5356d0edcfc739343",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/coveragepy_final:169972546b699f01813131d5356d0edcfc739343",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:169972546b699f01813131d5356d0edcfc739343"
+    },
+    {
+      "commit_hash": "16bd49d8a7e4e28acac3b64f1923bd07694bc963",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/pandas_final:16bd49d8a7e4e28acac3b64f1923bd07694bc963",
+      "repo_name": "pandas",
+      "task_id": "pandas:16bd49d8a7e4e28acac3b64f1923bd07694bc963"
+    },
+    {
+      "commit_hash": "dd5b9784e71ba3d4e806ea1020189b401479e977",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/aiohttp_final:dd5b9784e71ba3d4e806ea1020189b401479e977",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:dd5b9784e71ba3d4e806ea1020189b401479e977"
+    },
+    {
+      "commit_hash": "7c0344bb9997bd7df6f37b4c9df55598ea0064ee",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 15
+      },
+      "docker_image": "namanjain12/pillow_final:7c0344bb9997bd7df6f37b4c9df55598ea0064ee",
+      "repo_name": "pillow",
+      "task_id": "pillow:7c0344bb9997bd7df6f37b4c9df55598ea0064ee"
+    },
+    {
+      "commit_hash": "f880b1aa7583d7c3dfc111a8b79e7e7ba364baf2",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/numpy_final:f880b1aa7583d7c3dfc111a8b79e7e7ba364baf2",
+      "repo_name": "numpy",
+      "task_id": "numpy:f880b1aa7583d7c3dfc111a8b79e7e7ba364baf2"
+    },
+    {
+      "commit_hash": "927c83cc71e560cec6f7e1e97ba16e6bfe138262",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 4,
+        "num_non_test_func_methods": 3,
+        "num_non_test_lines": 29
+      },
+      "docker_image": "namanjain12/pandas_final:927c83cc71e560cec6f7e1e97ba16e6bfe138262",
+      "repo_name": "pandas",
+      "task_id": "pandas:927c83cc71e560cec6f7e1e97ba16e6bfe138262"
+    },
+    {
+      "commit_hash": "51c9796b10b8b141454f8fe4d080e76962a9ad57",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/tornado_final:51c9796b10b8b141454f8fe4d080e76962a9ad57",
+      "repo_name": "tornado",
+      "task_id": "tornado:51c9796b10b8b141454f8fe4d080e76962a9ad57"
+    },
+    {
+      "commit_hash": "b2f8f9970d142fdd2ed91c2f25f34605c6ba29bc",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 13
+      },
+      "docker_image": "namanjain12/tornado_final:b2f8f9970d142fdd2ed91c2f25f34605c6ba29bc",
+      "repo_name": "tornado",
+      "task_id": "tornado:b2f8f9970d142fdd2ed91c2f25f34605c6ba29bc"
+    },
+    {
+      "commit_hash": "9de4cc1bc6b719eea183419fd6343fa691139139",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pandas_final:9de4cc1bc6b719eea183419fd6343fa691139139",
+      "repo_name": "pandas",
+      "task_id": "pandas:9de4cc1bc6b719eea183419fd6343fa691139139"
+    },
+    {
+      "commit_hash": "4bba14da875c02bb569cea97414436b4af20c3d8",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 1
+      },
+      "docker_image": "namanjain12/orange3_final:4bba14da875c02bb569cea97414436b4af20c3d8",
+      "repo_name": "orange3",
+      "task_id": "orange3:4bba14da875c02bb569cea97414436b4af20c3d8"
+    },
+    {
+      "commit_hash": "c4f57608d60538079d12c2031201574c0f367a55",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/scrapy_final:c4f57608d60538079d12c2031201574c0f367a55",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:c4f57608d60538079d12c2031201574c0f367a55"
+    },
+    {
+      "commit_hash": "62e2f3413b7790ce2154b377509b676bf3e7e972",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/orange3_final:62e2f3413b7790ce2154b377509b676bf3e7e972",
+      "repo_name": "orange3",
+      "task_id": "orange3:62e2f3413b7790ce2154b377509b676bf3e7e972"
+    },
+    {
+      "commit_hash": "0cefc175f4e7facac38eba0bfd6b4c6ef1a29ddd",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/orange3_final:0cefc175f4e7facac38eba0bfd6b4c6ef1a29ddd",
+      "repo_name": "orange3",
+      "task_id": "orange3:0cefc175f4e7facac38eba0bfd6b4c6ef1a29ddd"
+    },
+    {
+      "commit_hash": "917d04fe09d4cd84880aef560b164bd8d98ff894",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/pandas_final:917d04fe09d4cd84880aef560b164bd8d98ff894",
+      "repo_name": "pandas",
+      "task_id": "pandas:917d04fe09d4cd84880aef560b164bd8d98ff894"
+    },
+    {
+      "commit_hash": "518b783c64150571ab010cb375ec77e343be626e",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pillow_final:518b783c64150571ab010cb375ec77e343be626e",
+      "repo_name": "pillow",
+      "task_id": "pillow:518b783c64150571ab010cb375ec77e343be626e"
+    },
+    {
+      "commit_hash": "8bb550b13c2efc5bddce511dda4f6f25cd4034a7",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 7
+      },
+      "docker_image": "namanjain12/datalad_final:8bb550b13c2efc5bddce511dda4f6f25cd4034a7",
+      "repo_name": "datalad",
+      "task_id": "datalad:8bb550b13c2efc5bddce511dda4f6f25cd4034a7"
+    },
+    {
+      "commit_hash": "d5a5a4d306edde37f65b678b6d92e4fd11e1f5cf",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/pandas_final:d5a5a4d306edde37f65b678b6d92e4fd11e1f5cf",
+      "repo_name": "pandas",
+      "task_id": "pandas:d5a5a4d306edde37f65b678b6d92e4fd11e1f5cf"
+    },
+    {
+      "commit_hash": "66657c17d33ccdffa8ca95c8efa9bd4d64bddf5e",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/coveragepy_final:66657c17d33ccdffa8ca95c8efa9bd4d64bddf5e",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:66657c17d33ccdffa8ca95c8efa9bd4d64bddf5e"
+    },
+    {
+      "commit_hash": "15b97dc81c8bcdc039f8f2293f85812f68a076da",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 22
+      },
+      "docker_image": "namanjain12/pyramid_final:15b97dc81c8bcdc039f8f2293f85812f68a076da",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:15b97dc81c8bcdc039f8f2293f85812f68a076da"
+    },
+    {
+      "commit_hash": "5aaecd1395dddc6f2e27f904cf759497d63f7eaf",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/pyramid_final:5aaecd1395dddc6f2e27f904cf759497d63f7eaf",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:5aaecd1395dddc6f2e27f904cf759497d63f7eaf"
+    },
+    {
+      "commit_hash": "7eecdff163ccf029fbb1ddc9de4169d4aaeb6597",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/aiohttp_final:7eecdff163ccf029fbb1ddc9de4169d4aaeb6597",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:7eecdff163ccf029fbb1ddc9de4169d4aaeb6597"
+    },
+    {
+      "commit_hash": "e422f92e523f4d0d66611b2f9f54f6606a218d4b",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/pillow_final:e422f92e523f4d0d66611b2f9f54f6606a218d4b",
+      "repo_name": "pillow",
+      "task_id": "pillow:e422f92e523f4d0d66611b2f9f54f6606a218d4b"
+    },
+    {
+      "commit_hash": "482e6cdf6516607360666a48c5828d3dbe959fbd",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/aiohttp_final:482e6cdf6516607360666a48c5828d3dbe959fbd",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:482e6cdf6516607360666a48c5828d3dbe959fbd"
+    },
+    {
+      "commit_hash": "42a651c6e23b4156c5bc37208d97d0788e09edf7",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/coveragepy_final:42a651c6e23b4156c5bc37208d97d0788e09edf7",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:42a651c6e23b4156c5bc37208d97d0788e09edf7"
+    },
+    {
+      "commit_hash": "d86e3fee3c9906ce0fad36520de86d9ac306cee8",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 18
+      },
+      "docker_image": "namanjain12/numpy_final:d86e3fee3c9906ce0fad36520de86d9ac306cee8",
+      "repo_name": "numpy",
+      "task_id": "numpy:d86e3fee3c9906ce0fad36520de86d9ac306cee8"
+    },
+    {
+      "commit_hash": "1d9f07f9154ec0510d4bdddced9d388f1f9bdf80",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 3,
+        "num_non_test_lines": 78
+      },
+      "docker_image": "namanjain12/datalad_final:1d9f07f9154ec0510d4bdddced9d388f1f9bdf80",
+      "repo_name": "datalad",
+      "task_id": "datalad:1d9f07f9154ec0510d4bdddced9d388f1f9bdf80"
+    },
+    {
+      "commit_hash": "3b3eaa60dc31677d1b19cb49e5c414d41ac4089a",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/numpy_final:3b3eaa60dc31677d1b19cb49e5c414d41ac4089a",
+      "repo_name": "numpy",
+      "task_id": "numpy:3b3eaa60dc31677d1b19cb49e5c414d41ac4089a"
+    },
+    {
+      "commit_hash": "7a52bc6056d940d321ee90ac114c6e44d2829803",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 17
+      },
+      "docker_image": "namanjain12/orange3_final:7a52bc6056d940d321ee90ac114c6e44d2829803",
+      "repo_name": "orange3",
+      "task_id": "orange3:7a52bc6056d940d321ee90ac114c6e44d2829803"
+    },
+    {
+      "commit_hash": "b6abd45926b73103bed0cf7e61b708f0f2f1e8ab",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/scrapy_final:b6abd45926b73103bed0cf7e61b708f0f2f1e8ab",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:b6abd45926b73103bed0cf7e61b708f0f2f1e8ab"
+    },
+    {
+      "commit_hash": "27bfd015eb7de221ea9b6090f6fb7c8450848891",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 3,
+        "num_non_test_lines": 23
+      },
+      "docker_image": "namanjain12/datalad_final:27bfd015eb7de221ea9b6090f6fb7c8450848891",
+      "repo_name": "datalad",
+      "task_id": "datalad:27bfd015eb7de221ea9b6090f6fb7c8450848891"
+    },
+    {
+      "commit_hash": "8c55ee6856ede7157f2d666560461941db6bc5eb",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/numpy_final:8c55ee6856ede7157f2d666560461941db6bc5eb",
+      "repo_name": "numpy",
+      "task_id": "numpy:8c55ee6856ede7157f2d666560461941db6bc5eb"
+    },
+    {
+      "commit_hash": "b142560488c77acc5319f98964224b4c576f58ef",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 75
+      },
+      "docker_image": "namanjain12/pillow_final:b142560488c77acc5319f98964224b4c576f58ef",
+      "repo_name": "pillow",
+      "task_id": "pillow:b142560488c77acc5319f98964224b4c576f58ef"
+    },
+    {
+      "commit_hash": "d2aa44f50f6ac4789d4e351e4e52a53a358da42e",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 19
+      },
+      "docker_image": "namanjain12/pandas_final:d2aa44f50f6ac4789d4e351e4e52a53a358da42e",
+      "repo_name": "pandas",
+      "task_id": "pandas:d2aa44f50f6ac4789d4e351e4e52a53a358da42e"
+    },
+    {
+      "commit_hash": "6efc5af8442e7c78a29ed01d8cb4ae9df1474926",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 11
+      },
+      "docker_image": "namanjain12/pandas_final:6efc5af8442e7c78a29ed01d8cb4ae9df1474926",
+      "repo_name": "pandas",
+      "task_id": "pandas:6efc5af8442e7c78a29ed01d8cb4ae9df1474926"
+    },
+    {
+      "commit_hash": "ae6c46ea92134d8e5bc1654c790d18065f687c40",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/pillow_final:ae6c46ea92134d8e5bc1654c790d18065f687c40",
+      "repo_name": "pillow",
+      "task_id": "pillow:ae6c46ea92134d8e5bc1654c790d18065f687c40"
+    },
+    {
+      "commit_hash": "318e8d9ed5c625b3502aa6013c7a3d52449cdfb1",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/pillow_final:318e8d9ed5c625b3502aa6013c7a3d52449cdfb1",
+      "repo_name": "pillow",
+      "task_id": "pillow:318e8d9ed5c625b3502aa6013c7a3d52449cdfb1"
+    },
+    {
+      "commit_hash": "9c932f71ec5a450954cee92ff9450974414ac1d8",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 5
+      },
+      "docker_image": "namanjain12/aiohttp_final:9c932f71ec5a450954cee92ff9450974414ac1d8",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:9c932f71ec5a450954cee92ff9450974414ac1d8"
+    },
+    {
+      "commit_hash": "ea8c3b0ce9ff87f849b1462aab0b34bd3e35d4ed",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 13
+      },
+      "docker_image": "namanjain12/orange3_final:ea8c3b0ce9ff87f849b1462aab0b34bd3e35d4ed",
+      "repo_name": "orange3",
+      "task_id": "orange3:ea8c3b0ce9ff87f849b1462aab0b34bd3e35d4ed"
+    },
+    {
+      "commit_hash": "ca5b1df94b81bd75e869a5c76e2eafc82f2759d7",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/pandas_final:ca5b1df94b81bd75e869a5c76e2eafc82f2759d7",
+      "repo_name": "pandas",
+      "task_id": "pandas:ca5b1df94b81bd75e869a5c76e2eafc82f2759d7"
+    },
+    {
+      "commit_hash": "88f8310d8c3049881f78883b70766867e9147177",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 19
+      },
+      "docker_image": "namanjain12/numpy_final:88f8310d8c3049881f78883b70766867e9147177",
+      "repo_name": "numpy",
+      "task_id": "numpy:88f8310d8c3049881f78883b70766867e9147177"
+    },
+    {
+      "commit_hash": "a478fdee6a7b0d2402420772ebfd4a90886f7d46",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 3,
+        "num_non_test_lines": 26
+      },
+      "docker_image": "namanjain12/pandas_final:a478fdee6a7b0d2402420772ebfd4a90886f7d46",
+      "repo_name": "pandas",
+      "task_id": "pandas:a478fdee6a7b0d2402420772ebfd4a90886f7d46"
+    },
+    {
+      "commit_hash": "b2091c407a4483da9dfa8852e080668c0440f428",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/tornado_final:b2091c407a4483da9dfa8852e080668c0440f428",
+      "repo_name": "tornado",
+      "task_id": "tornado:b2091c407a4483da9dfa8852e080668c0440f428"
+    },
+    {
+      "commit_hash": "89f44c12465b16a1ee63eb9e75ce13bb5a42e532",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/coveragepy_final:89f44c12465b16a1ee63eb9e75ce13bb5a42e532",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:89f44c12465b16a1ee63eb9e75ce13bb5a42e532"
+    },
+    {
+      "commit_hash": "f668d6f32e2d0864ee84e5f556860a085bc6ecfb",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 13
+      },
+      "docker_image": "namanjain12/coveragepy_final:f668d6f32e2d0864ee84e5f556860a085bc6ecfb",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:f668d6f32e2d0864ee84e5f556860a085bc6ecfb"
+    },
+    {
+      "commit_hash": "14af7bb5ac022bd4b19fb7f716a59bf5bea0c1bb",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 3
+      },
+      "docker_image": "namanjain12/pillow_final:14af7bb5ac022bd4b19fb7f716a59bf5bea0c1bb",
+      "repo_name": "pillow",
+      "task_id": "pillow:14af7bb5ac022bd4b19fb7f716a59bf5bea0c1bb"
+    },
+    {
+      "commit_hash": "f2668c316f347d44642a1bf0aa454dd0ee204977",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/scrapy_final:f2668c316f347d44642a1bf0aa454dd0ee204977",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:f2668c316f347d44642a1bf0aa454dd0ee204977"
+    },
+    {
+      "commit_hash": "777a8241c8a810c5e7a1bb04afbb6be4259ff9d1",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/numpy_final:777a8241c8a810c5e7a1bb04afbb6be4259ff9d1",
+      "repo_name": "numpy",
+      "task_id": "numpy:777a8241c8a810c5e7a1bb04afbb6be4259ff9d1"
+    },
+    {
+      "commit_hash": "aafd4c81f691bb8c40752c523e5c942d6d2bbb82",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/pandas_final:aafd4c81f691bb8c40752c523e5c942d6d2bbb82",
+      "repo_name": "pandas",
+      "task_id": "pandas:aafd4c81f691bb8c40752c523e5c942d6d2bbb82"
+    },
+    {
+      "commit_hash": "bff4d2b605c92fe2e6282861429ffc8e24c53796",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 15
+      },
+      "docker_image": "namanjain12/pyramid_final:bff4d2b605c92fe2e6282861429ffc8e24c53796",
+      "repo_name": "pyramid",
+      "task_id": "pyramid:bff4d2b605c92fe2e6282861429ffc8e24c53796"
+    },
+    {
+      "commit_hash": "93af2f0d4de0e56a5f0a7161d0ad93cbc9978872",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 14
+      },
+      "docker_image": "namanjain12/pandas_final:93af2f0d4de0e56a5f0a7161d0ad93cbc9978872",
+      "repo_name": "pandas",
+      "task_id": "pandas:93af2f0d4de0e56a5f0a7161d0ad93cbc9978872"
+    },
+    {
+      "commit_hash": "9106adfba085e93bf066d47e2da47b47839c8e08",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 19
+      },
+      "docker_image": "namanjain12/numpy_final:9106adfba085e93bf066d47e2da47b47839c8e08",
+      "repo_name": "numpy",
+      "task_id": "numpy:9106adfba085e93bf066d47e2da47b47839c8e08"
+    },
+    {
+      "commit_hash": "2d048353b2d1c62f3eee9d82d7ac055229e8e791",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 21
+      },
+      "docker_image": "namanjain12/coveragepy_final:2d048353b2d1c62f3eee9d82d7ac055229e8e791",
+      "repo_name": "coveragepy",
+      "task_id": "coveragepy:2d048353b2d1c62f3eee9d82d7ac055229e8e791"
+    },
+    {
+      "commit_hash": "7d3c11f1f415a03376ff292bde3e7b8458902f75",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 9
+      },
+      "docker_image": "namanjain12/orange3_final:7d3c11f1f415a03376ff292bde3e7b8458902f75",
+      "repo_name": "orange3",
+      "task_id": "orange3:7d3c11f1f415a03376ff292bde3e7b8458902f75"
+    },
+    {
+      "commit_hash": "95561fc41665d717b7876400d163e8138d9282be",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 6
+      },
+      "docker_image": "namanjain12/pandas_final:95561fc41665d717b7876400d163e8138d9282be",
+      "repo_name": "pandas",
+      "task_id": "pandas:95561fc41665d717b7876400d163e8138d9282be"
+    },
+    {
+      "commit_hash": "ecda69130e97629b15d3b09b1e588cb6777ee94d",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 14
+      },
+      "docker_image": "namanjain12/scrapy_final:ecda69130e97629b15d3b09b1e588cb6777ee94d",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:ecda69130e97629b15d3b09b1e588cb6777ee94d"
+    },
+    {
+      "commit_hash": "d822d85af6d9b1c108650832d56b75cd86b2f5a9",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 10
+      },
+      "docker_image": "namanjain12/pillow_final:d822d85af6d9b1c108650832d56b75cd86b2f5a9",
+      "repo_name": "pillow",
+      "task_id": "pillow:d822d85af6d9b1c108650832d56b75cd86b2f5a9"
+    },
+    {
+      "commit_hash": "1765438b5f68eeb5c9b920e8df2760dc8e908cae",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/numpy_final:1765438b5f68eeb5c9b920e8df2760dc8e908cae",
+      "repo_name": "numpy",
+      "task_id": "numpy:1765438b5f68eeb5c9b920e8df2760dc8e908cae"
+    },
+    {
+      "commit_hash": "9ea2877364b67571bdd763b040222e10c350aa32",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 3,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 46
+      },
+      "docker_image": "namanjain12/pandas_final:9ea2877364b67571bdd763b040222e10c350aa32",
+      "repo_name": "pandas",
+      "task_id": "pandas:9ea2877364b67571bdd763b040222e10c350aa32"
+    },
+    {
+      "commit_hash": "2f7c45ebc0e2adee709815fc26264c7940b732fd",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 26
+      },
+      "docker_image": "namanjain12/aiohttp_final:2f7c45ebc0e2adee709815fc26264c7940b732fd",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:2f7c45ebc0e2adee709815fc26264c7940b732fd"
+    },
+    {
+      "commit_hash": "55d77e04ff6567f96576fc433d52e00c64027a65",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 7
+      },
+      "docker_image": "namanjain12/orange3_final:55d77e04ff6567f96576fc433d52e00c64027a65",
+      "repo_name": "orange3",
+      "task_id": "orange3:55d77e04ff6567f96576fc433d52e00c64027a65"
+    },
+    {
+      "commit_hash": "04de888534815c80abf5025fb66c03c07cb1bb32",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 4
+      },
+      "docker_image": "namanjain12/aiohttp_final:04de888534815c80abf5025fb66c03c07cb1bb32",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:04de888534815c80abf5025fb66c03c07cb1bb32"
+    },
+    {
+      "commit_hash": "16dad81715d3970149c0cf7a318e73a0d84be1ff",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/scrapy_final:16dad81715d3970149c0cf7a318e73a0d84be1ff",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:16dad81715d3970149c0cf7a318e73a0d84be1ff"
+    },
+    {
+      "commit_hash": "c7ff47b3916aaa4bb94074660e6969dbf1b77305",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/aiohttp_final:c7ff47b3916aaa4bb94074660e6969dbf1b77305",
+      "repo_name": "aiohttp",
+      "task_id": "aiohttp:c7ff47b3916aaa4bb94074660e6969dbf1b77305"
+    },
+    {
+      "commit_hash": "cc3ca857a0d5d92309c655a37a60160abc51679b",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/tornado_final:cc3ca857a0d5d92309c655a37a60160abc51679b",
+      "repo_name": "tornado",
+      "task_id": "tornado:cc3ca857a0d5d92309c655a37a60160abc51679b"
+    },
+    {
+      "commit_hash": "18553cfa239d1e123e23cb7b51550439c3582e0e",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 18
+      },
+      "docker_image": "namanjain12/datalad_final:18553cfa239d1e123e23cb7b51550439c3582e0e",
+      "repo_name": "datalad",
+      "task_id": "datalad:18553cfa239d1e123e23cb7b51550439c3582e0e"
+    },
+    {
+      "commit_hash": "885289f497f31d721a3414867fc6fda2f959790f",
+      "complexity_bin": 0,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 2
+      },
+      "docker_image": "namanjain12/scrapy_final:885289f497f31d721a3414867fc6fda2f959790f",
+      "repo_name": "scrapy",
+      "task_id": "scrapy:885289f497f31d721a3414867fc6fda2f959790f"
+    },
+    {
+      "commit_hash": "77ce648eb80246d9aadb5be1596a98859f4b05cb",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 26
+      },
+      "docker_image": "namanjain12/datalad_final:77ce648eb80246d9aadb5be1596a98859f4b05cb",
+      "repo_name": "datalad",
+      "task_id": "datalad:77ce648eb80246d9aadb5be1596a98859f4b05cb"
+    },
+    {
+      "commit_hash": "856a5b73b40ec8fb25240fa89583fcb08e25c589",
+      "complexity_bin": 2,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 8
+      },
+      "docker_image": "namanjain12/orange3_final:856a5b73b40ec8fb25240fa89583fcb08e25c589",
+      "repo_name": "orange3",
+      "task_id": "orange3:856a5b73b40ec8fb25240fa89583fcb08e25c589"
+    },
+    {
+      "commit_hash": "947a0110b48ef9ad82a3a710a5f8bd6297c11f51",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 13
+      },
+      "docker_image": "namanjain12/datalad_final:947a0110b48ef9ad82a3a710a5f8bd6297c11f51",
+      "repo_name": "datalad",
+      "task_id": "datalad:947a0110b48ef9ad82a3a710a5f8bd6297c11f51"
+    },
+    {
+      "commit_hash": "3cc797e5107d5f3fe812b0ccdc9bc96f107f0b20",
+      "complexity_bin": 1,
+      "complexity_proxy": {
+        "num_non_test_files": 1,
+        "num_non_test_func_methods": 1,
+        "num_non_test_lines": 12
+      },
+      "docker_image": "namanjain12/numpy_final:3cc797e5107d5f3fe812b0ccdc9bc96f107f0b20",
+      "repo_name": "numpy",
+      "task_id": "numpy:3cc797e5107d5f3fe812b0ccdc9bc96f107f0b20"
+    },
+    {
+      "commit_hash": "9cc905307df8c0b6ab74b911bb0dfa3e255161fd",
+      "complexity_bin": 3,
+      "complexity_proxy": {
+        "num_non_test_files": 2,
+        "num_non_test_func_methods": 2,
+        "num_non_test_lines": 33
+      },
+      "docker_image": "namanjain12/pandas_final:9cc905307df8c0b6ab74b911bb0dfa3e255161fd",
+      "repo_name": "pandas",
+      "task_id": "pandas:9cc905307df8c0b6ab74b911bb0dfa3e255161fd"
+    }
+  ]
+}

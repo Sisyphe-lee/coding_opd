@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+podman_root=${CODING_OPD_PODMAN_ROOT:-/workspaces/coding-opd-podman-overlay}
+podman_runroot=${CODING_OPD_PODMAN_RUNROOT:-/run/coding-opd-podman-overlay}
+podman_driver=${CODING_OPD_PODMAN_DRIVER:-overlay}
+
+mkdir -p "$podman_root" "$podman_runroot"
+
+exec env CONTAINERS_CONF=/dev/null podman \
+  --storage-driver="$podman_driver" \
+  --root "$podman_root" \
+  --runroot "$podman_runroot" \
+  --runtime=crun \
+  "$@"

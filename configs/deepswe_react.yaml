@@ -1,0 +1,41 @@
+- name: deep_swe
+  sandbox:
+    provider: coding_opd_podman
+    runtime_timeout: 11100
+    sandbox_kwargs:
+      docker_binary: /personal/coding_opd/scripts/podman_sandbox
+      pull_policy: never
+      run_args:
+        - --cgroups=disabled
+        - --network
+        - none
+  agent_timeout: 10800
+  eval_timeout: 1800
+  agent:
+    name: react
+    max_steps: 96
+    action_timeout: 180
+    tools:
+      - name: coding_opd_editor
+        max_output_chars: 10000
+      - name: coding_opd_shell
+        command_timeout: 180
+        env_vars:
+          PAGER: cat
+          GIT_PAGER: cat
+          TQDM_DISABLE: "1"
+      - name: submit
+    model:
+      temperature: 0.0
+      top_p: 1.0
+      max_tokens_per_turn: 4096
+      max_total_tokens: 65536
+  prompt_template:
+    - role: system
+      content: |-
+        You are a software engineer. Use the available tools to inspect, edit, and test the repository.
+        Work only in /app. Dependencies are preinstalled and network access is disabled.
+        Do not inspect or modify hidden verifier files. Keep observations concise and finish with the submit tool.
+    - role: user
+      content: |-
+        {instruction}

@@ -1,0 +1,42 @@
+- name: r2e_gym
+  sandbox:
+    provider: coding_opd_podman
+    runtime_timeout: 1800
+    sandbox_kwargs:
+      docker_binary: /personal/coding_opd/scripts/podman_sandbox
+      pull_policy: never
+      run_args:
+        - --cgroups=disabled
+        - --network
+        - none
+  agent:
+    name: react
+    max_steps: 24
+    action_timeout: 120
+    tools:
+      - name: coding_opd_editor
+        max_output_chars: 10000
+      - name: coding_opd_shell
+        command_timeout: 120
+        env_vars:
+          PAGER: cat
+          GIT_PAGER: cat
+          TQDM_DISABLE: "1"
+      - name: submit
+    model:
+      temperature: 0.7
+      top_p: 0.95
+      max_tokens_per_turn: 4096
+      max_total_tokens: 16384
+  prompt_template:
+    - role: system
+      content: |-
+        You are a software engineer. Use the available tools to inspect, edit, and test the repository.
+        Keep observations concise: locate code with shell rg/find first and request narrow file line ranges instead of viewing whole directories or large files.
+    - role: user
+      content: |-
+        Work in /testbed and fix the following issue:
+
+        {problem_statement}
+
+        Make the smallest correct change to non-test code. Do not modify tests or install packages. Run the relevant tests, then call the submit tool.

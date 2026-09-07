@@ -1,0 +1,36 @@
+- name: deep_swe
+  sandbox:
+    provider: coding_opd_podman
+    runtime_timeout: 11100
+    sandbox_kwargs:
+      docker_binary: /personal/coding_opd/scripts/podman_sandbox
+      pull_policy: never
+      run_args:
+        # Robby exposes a read-only cgroup hierarchy, so the official 2 CPU /
+        # 8 GiB / 20 GiB limits cannot be enforced by nested Podman.  The
+        # no-network and timeout boundaries below remain exact; do not report
+        # wall-time comparisons against Modal as resource-equivalent.
+        - --cgroups=disabled
+        - --network
+        - none
+        - --volume
+        - /opt/codex/vendor/x86_64-unknown-linux-musl/bin/codex:/opt/coding-opd/codex:ro
+        - --volume
+        - /personal/coding_opd/scripts/unix_socket_http_proxy.py:/opt/coding-opd/unix_socket_http_proxy.py:ro
+        - --volume
+        - /var/lib/coding-opd-codex-eval:/opt/coding-opd/model:ro
+  agent_timeout: 10800
+  eval_timeout: 1800
+  agent:
+    name: coding_opd_codex
+    codex_binary: /opt/coding-opd/codex
+    proxy_script: /opt/coding-opd/unix_socket_http_proxy.py
+    model_socket: /opt/coding-opd/model/qwen38.sock
+    api_port: 8000
+    context_window: 262144
+    reasoning_effort: xhigh
+    reasoning_summary: auto
+    model: {}
+  prompt_template:
+    - role: user
+      content: "{instruction}"

@@ -1,0 +1,372 @@
+{
+  "contains": "swebench_verified_50",
+  "count": 64,
+  "frozen_date": "2026-09-06",
+  "image_count": 64,
+  "name": "swebench_verified_64",
+  "nested_in": "official SWE-bench Verified test split (500 tasks)",
+  "purpose": "quick_evaluation",
+  "repo_counts": {
+    "astropy/astropy": 3,
+    "django/django": 25,
+    "matplotlib/matplotlib": 5,
+    "mwaskom/seaborn": 1,
+    "pallets/flask": 1,
+    "psf/requests": 2,
+    "pydata/xarray": 3,
+    "pylint-dev/pylint": 2,
+    "pytest-dev/pytest": 3,
+    "scikit-learn/scikit-learn": 4,
+    "sphinx-doc/sphinx": 6,
+    "sympy/sympy": 9
+  },
+  "schema": "coding_opd.dataset_manifest.v1",
+  "seed": 42,
+  "selection": {
+    "repo_quotas": {
+      "astropy/astropy": 3,
+      "django/django": 25,
+      "matplotlib/matplotlib": 5,
+      "mwaskom/seaborn": 1,
+      "pallets/flask": 1,
+      "psf/requests": 2,
+      "pydata/xarray": 3,
+      "pylint-dev/pylint": 2,
+      "pytest-dev/pytest": 3,
+      "scikit-learn/scikit-learn": 4,
+      "sphinx-doc/sphinx": 6,
+      "sympy/sympy": 9
+    },
+    "repository_allocation": "one per repository, then largest_remainder(N_repo)",
+    "within_repository_order": "sha256(seed, verified-task, instance_id)"
+  },
+  "source": {
+    "dataset": "SWE-bench/SWE-bench_Verified",
+    "full_count": 500,
+    "revision": "78f471bf655a3137b2e8a75af1501690ec009ec3",
+    "split": "test"
+  },
+  "task_id_sha256": "7a684848015a2f24522bcd8747ba6e671ec18abdda8977649b46a5243aa750ee",
+  "tasks": [
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-17630",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-17630"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-12708",
+      "repo": "django/django",
+      "task_id": "django__django-12708"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-26208",
+      "repo": "matplotlib/matplotlib",
+      "task_id": "matplotlib__matplotlib-26208"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25232",
+      "repo": "scikit-learn/scikit-learn",
+      "task_id": "scikit-learn__scikit-learn-25232"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7454",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-7454"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16899",
+      "repo": "django/django",
+      "task_id": "django__django-16899"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pydata_1776_xarray-7229",
+      "repo": "pydata/xarray",
+      "task_id": "pydata__xarray-7229"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-13516",
+      "repo": "django/django",
+      "task_id": "django__django-13516"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-15731",
+      "repo": "django/django",
+      "task_id": "django__django-15731"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pydata_1776_xarray-6599",
+      "repo": "pydata/xarray",
+      "task_id": "pydata__xarray-6599"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22719",
+      "repo": "matplotlib/matplotlib",
+      "task_id": "matplotlib__matplotlib-22719"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8120",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-8120"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20428",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-20428"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-13615",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-13615"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.astropy_1776_astropy-7671",
+      "repo": "astropy/astropy",
+      "task_id": "astropy__astropy-7671"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-14122",
+      "repo": "django/django",
+      "task_id": "django__django-14122"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-19637",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-19637"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pallets_1776_flask-5014",
+      "repo": "pallets/flask",
+      "task_id": "pallets__flask-5014"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-15345",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-15345"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-14500",
+      "repo": "django/django",
+      "task_id": "django__django-14500"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25775",
+      "repo": "matplotlib/matplotlib",
+      "task_id": "matplotlib__matplotlib-25775"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-15277",
+      "repo": "django/django",
+      "task_id": "django__django-15277"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-7277",
+      "repo": "pylint-dev/pylint",
+      "task_id": "pylint-dev__pylint-7277"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-13089",
+      "repo": "django/django",
+      "task_id": "django__django-13089"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-7910"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16136",
+      "repo": "django/django",
+      "task_id": "django__django-16136"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-14999",
+      "repo": "django/django",
+      "task_id": "django__django-14999"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-11276",
+      "repo": "django/django",
+      "task_id": "django__django-11276"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-10356",
+      "repo": "pytest-dev/pytest",
+      "task_id": "pytest-dev__pytest-10356"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-15375",
+      "repo": "django/django",
+      "task_id": "django__django-15375"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-23262",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-23262"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9367",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-9367"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-20859",
+      "repo": "matplotlib/matplotlib",
+      "task_id": "matplotlib__matplotlib-20859"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16256",
+      "repo": "django/django",
+      "task_id": "django__django-16256"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4604",
+      "repo": "pylint-dev/pylint",
+      "task_id": "pylint-dev__pylint-4604"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-15315",
+      "repo": "django/django",
+      "task_id": "django__django-15315"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20154",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-20154"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-9281"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-24026",
+      "repo": "matplotlib/matplotlib",
+      "task_id": "matplotlib__matplotlib-24026"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16569",
+      "repo": "django/django",
+      "task_id": "django__django-16569"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.mwaskom_1776_seaborn-3187",
+      "repo": "mwaskom/seaborn",
+      "task_id": "mwaskom__seaborn-3187"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-26323",
+      "repo": "scikit-learn/scikit-learn",
+      "task_id": "scikit-learn__scikit-learn-26323"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18698",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-18698"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7432",
+      "repo": "pytest-dev/pytest",
+      "task_id": "pytest-dev__pytest-7432"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7982",
+      "repo": "pytest-dev/pytest",
+      "task_id": "pytest-dev__pytest-7982"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-13779",
+      "repo": "scikit-learn/scikit-learn",
+      "task_id": "scikit-learn__scikit-learn-13779"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16454",
+      "repo": "django/django",
+      "task_id": "django__django-16454"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-11333",
+      "repo": "django/django",
+      "task_id": "django__django-11333"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.pydata_1776_xarray-3095",
+      "repo": "pydata/xarray",
+      "task_id": "pydata__xarray-3095"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-13670",
+      "repo": "django/django",
+      "task_id": "django__django-13670"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8475",
+      "repo": "sphinx-doc/sphinx",
+      "task_id": "sphinx-doc__sphinx-8475"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16877",
+      "repo": "django/django",
+      "task_id": "django__django-16877"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-12125",
+      "repo": "django/django",
+      "task_id": "django__django-12125"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.psf_1776_requests-1921",
+      "repo": "psf/requests",
+      "task_id": "psf__requests-1921"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-16527",
+      "repo": "django/django",
+      "task_id": "django__django-16527"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.astropy_1776_astropy-14598",
+      "repo": "astropy/astropy",
+      "task_id": "astropy__astropy-14598"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20438",
+      "repo": "sympy/sympy",
+      "task_id": "sympy__sympy-20438"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25102",
+      "repo": "scikit-learn/scikit-learn",
+      "task_id": "scikit-learn__scikit-learn-25102"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-14434",
+      "repo": "django/django",
+      "task_id": "django__django-14434"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-13279",
+      "repo": "django/django",
+      "task_id": "django__django-13279"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.astropy_1776_astropy-14182",
+      "repo": "astropy/astropy",
+      "task_id": "astropy__astropy-14182"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-13821",
+      "repo": "django/django",
+      "task_id": "django__django-13821"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.psf_1776_requests-2931",
+      "repo": "psf/requests",
+      "task_id": "psf__requests-2931"
+    },
+    {
+      "docker_image": "swebench/sweb.eval.x86_64.django_1776_django-10914",
+      "repo": "django/django",
+      "task_id": "django__django-10914"
+    }
+  ]
+}
