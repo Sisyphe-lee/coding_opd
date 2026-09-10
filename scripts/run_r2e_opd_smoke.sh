@@ -8,6 +8,7 @@ TEACHER_MODEL="${TEACHER_MODEL:-${RUNTIME_ROOT}/models/Qwen3.8-27B}"
 TRAIN_FILE="${TRAIN_FILE:-${RUNTIME_ROOT}/datasets/r2e_opd_smoke.parquet}"
 VAL_FILE="${VAL_FILE:-${TRAIN_FILE}}"
 TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/coding_react.yaml}"
+AGENT_SESSION_TIMEOUT_SECONDS="${AGENT_SESSION_TIMEOUT_SECONDS:-3600}"
 OPD_ALGORITHM="${OPD_ALGORITHM:-vanilla}"
 TCOD_GROWTH_INTERVAL="${TCOD_GROWTH_INTERVAL:-2}"
 ADAPTIVE_THRESHOLD="${ADAPTIVE_THRESHOLD:-0.1}"
@@ -105,8 +106,8 @@ DISTILLATION_KEY="${DISTILLATION_KEY:-r2e_gym}"
 # still evaluates; training must not wait for an unused post-agent test suite.
 RUN_TASK_EVALUATION="${RUN_TASK_EVALUATION:-false}"
 
-# Preserve the existing GPU topology and two minibatches per step, but finish
-# the entire batch before training. No rollout from the next step is prefetched.
+# Adaptive's online Teacher frontier stays at a complete batch barrier. Vanilla
+# and TCOD retain the launcher's selected prefetch policy.
 if [[ "${OPD_ALGORITHM}" == adaptive ]]; then
     OPD_SYNC_ROLLOUTS=true
 fi
@@ -356,7 +357,7 @@ fi
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_fqn="${TASK_RUNNER_FQN}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.dispatch_mode=ray_task \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.max_concurrent_sessions="${MAX_CONCURRENT_SESSIONS}" \
-    +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.session_timeout_seconds=1200 \
+    +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.session_timeout_seconds="${AGENT_SESSION_TIMEOUT_SECONDS}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.task_config_path="${TASK_CONFIG}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.opd_algorithm="${OPD_ALGORITHM}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.tcod_growth_interval="${TCOD_GROWTH_INTERVAL}" \

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Keep container monitoring unchanged; only route exec's delayed cleanup
+# through the service instead of starting another complete Podman runtime.
+args=("$@")
+for arg in "$@"; do
+    if [[ "$arg" == --exec-attach ]]; then
+        script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+        for ((i = 0; i < ${#args[@]}; i++)); do
+            if [[ "${args[i]}" == --exit-command ]]; then
+                args[i+1]="$script_dir/podman_exec_cleanup"
+                break
+            fi
+        done
+        break
+    fi
+done
+exec /usr/bin/conmon "${args[@]}"

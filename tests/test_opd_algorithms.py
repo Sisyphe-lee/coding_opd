@@ -37,12 +37,12 @@ def test_unknown_algorithm_and_invalid_progress() -> None:
 
 
 @pytest.mark.parametrize("name,training,step,expected", [
-    ("vanilla", True, 0, 24),
+    ("vanilla", True, 0, 100),
     ("tcod", True, 0, 1),
     ("tcod", True, 16, 9),
-    ("tcod", True, 256, 24),
-    ("tcod", False, 0, 24),
-    ("tcod", False, None, 24),
+    ("tcod", True, 256, 100),
+    ("tcod", False, 0, 100),
+    ("tcod", False, None, 100),
 ])
 def test_framework_to_runner_horizon(monkeypatch, name, training, step, expected) -> None:
     config_path = str(Path(__file__).parents[1] / "configs/coding_react.yaml")
@@ -70,7 +70,7 @@ def test_framework_to_runner_horizon(monkeypatch, name, training, step, expected
     assert result == "result"
     assert captured["agent"]["max_steps"] == expected
     assert captured["agent"]["action_timeout"] == 17
-    assert captured["agent"]["model"]["max_total_tokens"] == 16384
+    assert captured["agent"]["model"]["max_total_tokens"] == 32768
     assert captured["sandbox"]["sandbox_kwargs"]["run_args"][-2:] == ["--network", "none"]
     assert sample == original
 

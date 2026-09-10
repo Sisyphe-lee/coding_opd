@@ -32,7 +32,7 @@ esac
 case "${BENCHMARK}" in
     swebench_verified)
         default_eval_bundle=coding_opd_eval_v3
-        TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/uni_agent_react_reference.yaml}"
+        TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/coding_react.yaml}"
         ;;
     deepswe)
         default_eval_bundle=coding_opd_eval_v2

@@ -68,13 +68,16 @@ class OPDGatewayManager(GatewayManager):
         template = OmegaConf.select(config, "data.apply_chat_template_kwargs", default={}) or {}
         if OmegaConf.is_config(template):
             template = OmegaConf.to_container(template, resolve=True)
+        context_limit = OmegaConf.select(rollout, "custom.coding_react.max_context_tokens",
+                                         default=rollout.prompt_length + rollout.response_length)
         actor_config = GatewayActorConfig(
             tokenizer=model.tokenizer, processor=model.processor,
             tool_parser_name=rollout.get("multi_turn", {}).get("format"),
             rollout_backend=rollout.name,
             enable_tool_parser_cache=af.get("enable_tool_parser_cache", True),
             apply_chat_template_kwargs=template,
-            prompt_length=rollout.prompt_length, response_length=rollout.response_length,
+            prompt_length=rollout.prompt_length,
+            response_length=min(rollout.response_length, context_limit - rollout.prompt_length),
             enable_last_assistant_rollback=af.get("enable_last_assistant_rollback", True),
         )
         actor = ray.remote(OPDGatewayActor)

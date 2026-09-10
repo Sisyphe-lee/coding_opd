@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# conmon supplies Podman's original cleanup arguments. The normal remote
+# client already removes its exec session; a 404 here means cleanup is done.
+args=("$@")
+runroot=/run/coding-opd-podman-overlay
+session_id=
+for ((i = 0; i < ${#args[@]}; i++)); do
+    case "${args[i]}" in
+        --runroot) runroot="${args[i+1]}" ;;
+        --exec) session_id="${args[i+1]}" ;;
+    esac
+done
+if [[ -n "$session_id" && -S "$runroot/podman.sock" ]]; then
+    status=$(curl --silent --max-time 30 --unix-socket "$runroot/podman.sock" \
+        --request DELETE --header 'Content-Type: application/json' --data '{}' \
+        --output /dev/null --write-out '%{http_code}' \
+        "http://localhost/v4.9.3/libpod/exec/$session_id") || status=000
+    case "$status" in
+        200|204|404) exit 0 ;;
+    esac
+fi
+# Preserve native orphan cleanup when the service cannot handle the request.
+exec /usr/bin/podman "$@"

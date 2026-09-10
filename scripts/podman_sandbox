@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 podman_root=${CODING_OPD_PODMAN_ROOT:-/workspaces/coding-opd-podman-overlay}
 podman_runroot=${CODING_OPD_PODMAN_RUNROOT:-/run/coding-opd-podman-overlay}
 podman_driver=${CODING_OPD_PODMAN_DRIVER:-overlay}
 podman_socket="${podman_runroot}/podman.sock"
 
-# Reuse the store for frequent tool calls; lifecycle commands stay local.
+# Reuse the service for tool calls and container lifecycle operations.
 case "${1:-}" in
-    exec|cp)
+    exec|cp|run|rm)
         if [[ -S "$podman_socket" ]]; then
             exec env CONTAINERS_CONF=/dev/null podman \
                 --remote --url "unix://${podman_socket}" "$@"
@@ -23,4 +24,5 @@ exec env CONTAINERS_CONF=/dev/null podman \
   --root "$podman_root" \
   --runroot "$podman_runroot" \
   --runtime=crun \
+  --conmon "$script_dir/conmon_sandbox" \
   "$@"

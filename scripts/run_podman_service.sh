@@ -47,5 +47,21 @@ PY
     echo "Podman service failed to become ready; see $log" >&2
     exit 1
 fi
+# Podman 4.9 uses exclusive SQLite transactions. DELETE journaling lets
+# concurrent exec readers block writers for its 100-second busy timeout.
+# Set WAL before the service opens its connection pool; keep FULL durability.
+bash "$script_dir/podman_sandbox" info >/dev/null
+python3 - "${CODING_OPD_PODMAN_ROOT:-/workspaces/coding-opd-podman-overlay}/db.sql" <<'PY'
+import pathlib
+import sqlite3
+import sys
+
+db = pathlib.Path(sys.argv[1])
+if db.is_file():
+    with sqlite3.connect(f"file:{db}?mode=rw", uri=True, timeout=30) as connection:
+        mode = connection.execute("PRAGMA journal_mode=WAL").fetchone()[0]
+        if mode != "wal":
+            raise RuntimeError(f"Podman SQLite journal mode is {mode}, expected wal")
+PY
 exec bash "$script_dir/podman_sandbox" system service --time=0 \
     "unix://${podman_runroot}/podman.sock"

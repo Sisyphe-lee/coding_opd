@@ -7,8 +7,12 @@ from pathlib import Path
 import pytest
 from uni_agent.tasks import TaskConfigResolver
 
-from coding_opd.codex_agent import _instruction, _summarize_jsonl, summarize_codex_artifacts
-from coding_opd.codex_agent import resolve_auto_compact_limit
+from coding_opd.codex_agent import (
+    _instruction,
+    _summarize_jsonl,
+    resolve_auto_compact_limit,
+    summarize_codex_artifacts,
+)
 from coding_opd.codex_eval_entrypoint import _load_records, _safe_name
 from coding_opd import codex_eval_entrypoint as entrypoint
 from coding_opd.deepswe_task import DeepSWETask as DeepSWETask  # noqa: F401
@@ -47,7 +51,7 @@ def test_codex_instruction_keeps_single_user_prompt_exact() -> None:
     assert _instruction([{"role": "user", "content": "task text"}]) == "task text"
 
 
-def test_auto_compact_threshold_is_explicit_and_bounded():
+def test_auto_compact_threshold_is_explicit_and_bounded() -> None:
     assert resolve_auto_compact_limit(262144) == 235929
     assert resolve_auto_compact_limit(272000) == 244800
     assert resolve_auto_compact_limit(262144, 210000) == 210000
@@ -56,7 +60,7 @@ def test_auto_compact_threshold_is_explicit_and_bounded():
             resolve_auto_compact_limit(context, limit)
 
 
-def test_session_compaction_and_context_usage_diagnostics(tmp_path):
+def test_session_compaction_and_context_usage_diagnostics(tmp_path: Path) -> None:
     session = tmp_path / "codex-home/sessions/rollout.jsonl"
     session.parent.mkdir(parents=True)
     events = [

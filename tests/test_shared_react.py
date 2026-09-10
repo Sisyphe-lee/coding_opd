@@ -45,11 +45,24 @@ def test_training_and_verified_share_solver_and_keep_secrets_out():
     assert train.agent == evaluation.agent
     assert train.prompt == evaluation.prompt
     assert train.sandbox == evaluation.sandbox
-    assert train.agent_timeout == evaluation.agent_timeout == 900
+    assert train.agent_timeout == evaluation.agent_timeout == 3000
     assert "SECRET" not in str(train.prompt)
     assert train.agent.model.top_k == -1
-    assert train.agent.model.max_total_tokens == 16384
+    assert train.agent.model.max_total_tokens == 32768
     assert type(tasks[0].build_agent()) is type(tasks[1].build_agent()) is CodingReActAgent
+    import yaml
+    reference = yaml.safe_load((ROOT / "configs/uni_agent_react_reference.yaml").read_text())[0]
+    shared = yaml.safe_load((ROOT / "configs/coding_react.yaml").read_text())[0]
+    assert shared["prompt_template"] == reference["prompt_template"]
+    assert shared["sandbox"] == reference["sandbox"]
+    # Command timeout is a local wall-clock budget; the tool schema remains upstream-compatible.
+    reference["agent"]["tools"][1]["command_timeout"] = 120
+    assert train.agent.tools == reference["agent"]["tools"]
+    assert train.agent.max_steps == reference["agent"]["max_steps"]
+    assert train.agent.action_timeout is None
+    assert train.agent.model.max_tokens_per_turn is None
+    assert train.agent.model.temperature == reference["agent"]["model"]["temperature"]
+    assert train.agent.model.top_p == reference["agent"]["model"]["top_p"]
 
 
 @pytest.mark.parametrize("finish_reason", ["repetition", "length"])
@@ -94,12 +107,12 @@ def test_terminal_reason_takes_priority_over_tool_parser(reason):
 
 
 @pytest.mark.parametrize("algorithm", ["vanilla", "tcod", "adaptive"])
-def test_formal_launcher_disables_cross_batch_and_within_batch_lag(tmp_path, algorithm):
+def test_formal_launcher_uses_one_batch_prefetch_except_adaptive(tmp_path, algorithm):
     capture = tmp_path / "capture"
     capture.write_text(f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[1:]))\n")
     capture.chmod(0o755)
-    # Deliberately supply the previous asynchronous settings: the formal entry
-    # must replace them, including Adaptive's previous two minibatches.
+    # Deliberately supply conflicting update settings: the formal entry keeps
+    # one update per batch and only Adaptive forces synchronous rollout.
     result = subprocess.run(["bash", str(ROOT / "scripts/run_r2e_opd_train.sh")], check=True,
                             capture_output=True, text=True, env={**os.environ,
         "REPO_ROOT": str(ROOT), "RUNTIME_ROOT": str(tmp_path), "PYTHON_BIN": str(capture),
@@ -110,13 +123,21 @@ def test_formal_launcher_disables_cross_batch_and_within_batch_lag(tmp_path, alg
     })
     args = json.loads(result.stdout)
     assert "data.train_batch_size=32" in args
+    assert "data.max_response_length=32768" in args
+    assert "actor_rollout_ref.actor.ppo_max_token_len_per_gpu=32768" in args
+    assert "actor_rollout_ref.model.enable_gradient_checkpointing=true" in args
+    assert "trainer.n_gpus_per_node=2" in args
+    assert "actor_rollout_ref.rollout.n_gpus_per_node=4" in args
+    assert "trainer.total_training_steps=256" in args
     assert "actor_rollout_ref.actor.ppo_mini_batch_size=32" in args
     assert "actor_rollout_ref.actor.ppo_epochs=1" in args
     assert "trainer.v1.separate_async.parameter_sync_step=1" in args
     assert "trainer.v1.separate_async.num_warmup_batches=0" in args
-    assert "+trainer.v1.separate_async.checkpoint_safe_prefetch=false" in args
+    prefetch = "false" if algorithm == "adaptive" else "true"
+    synchronous = "true" if algorithm == "adaptive" else "false"
+    assert f"+trainer.v1.separate_async.checkpoint_safe_prefetch={prefetch}" in args
     assert "trainer.v1.separate_async.hybrid_rollout.enable_switch=false" in args
-    assert "+actor_rollout_ref.rollout.custom.agent_framework.synchronous_rollouts=true" in args
+    assert f"+actor_rollout_ref.rollout.custom.agent_framework.synchronous_rollouts={synchronous}" in args
 
 
 def test_verified_grades_only_patch_in_new_container(monkeypatch, tmp_path):
@@ -174,3 +195,68 @@ def test_verified_grades_only_patch_in_new_container(monkeypatch, tmp_path):
     assert events.index(("agent", "stop")) < events.index(("verifier", "start"))
     assert verifier.files == {"/tmp/patch.diff": patch, "/eval.sh": "pytest"}
     assert result.accuracy == 1
+
+
+def test_react_keeps_prompt_and_tool_history_across_turns():
+    from copy import deepcopy
+    from uni_agent.tools.base import ToolResult
+
+    seen = []
+
+    class Model:
+        async def query(self, transcript, **kwargs):
+            seen.append(deepcopy(transcript))
+            tools = [{"id": "call1", "function": {
+                "name": "shell", "arguments": '{"command":"pwd"}',
+            }}] if len(seen) == 1 else []
+            return "inspect" if tools else "done", tools, {
+                "prompt_tokens": 100, "completion_tokens": 10, "finish_reason": "stop",
+            }
+
+    class Toolbox:
+        async def call(self, *args, **kwargs):
+            return ToolResult(text="/testbed", status="ok")
+
+    async def run():
+        agent = CodingReActAgent()
+        cfg = CodingReActConfig()
+        transcript = [{"role": "system", "content": "original system"},
+                      {"role": "user", "content": "original issue"}]
+        info = {"steps": 1, "total_tokens": 0, "num_tool_calls": 0, "timeouts": 0, "errors": 0}
+        model = Model()
+        assert await agent.step(cfg, model, Toolbox(), transcript, info) == "completed"
+        info["steps"] = 2
+        assert await agent.step(cfg, model, Toolbox(), transcript, info) == "finished"
+
+    asyncio.run(run())
+    assert seen[1][:2] == seen[0]
+    assert seen[1][2]["tool_calls"][0]["id"] == "call1"
+    assert seen[1][3] == {"role": "tool", "tool_call_id": "call1", "name": "shell", "content": "Observation:\n/testbed"}
+
+
+def test_gateway_capacity_stops_tool_observations_at_total_context_limit(monkeypatch):
+    from omegaconf import OmegaConf
+    from coding_opd import opd_gateway
+
+    config = OmegaConf.create({"actor_rollout_ref": {
+        "model": {}, "rollout": {"name": "vllm", "prompt_length": 4096,
+            "response_length": 32768, "custom": {
+                "coding_react": {"max_context_tokens": 32768},
+                "agent_framework": {"gateway_count": 1},
+            }},
+    }})
+    monkeypatch.setattr(opd_gateway, "omega_conf_to_dataclass",
+                        lambda _: SimpleNamespace(tokenizer=None, processor=None))
+
+    class Captured(Exception):
+        pass
+
+    def capture(**kwargs):
+        # The gateway checks this sum BEFORE adding an oversized tool result;
+        # bounding only vLLM generation would leave that result in the trajectory.
+        assert kwargs["prompt_length"] + kwargs["response_length"] == 32768
+        raise Captured
+
+    monkeypatch.setattr(opd_gateway, "GatewayActorConfig", capture)
+    with pytest.raises(Captured):
+        opd_gateway.OPDGatewayManager(config, backend=None)

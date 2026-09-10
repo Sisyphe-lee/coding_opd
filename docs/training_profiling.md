@@ -51,34 +51,9 @@ the same result; default threads with a 32 GiB limit also completed normally.
 R2E task containers now set `OPENBLAS_NUM_THREADS=1`, retaining the 8 GiB
 protection. This setting applies to sandbox CPU commands, not the GPU workers.
 
-On 2026-09-08, the zero-warmup R2E-512 runs
-`r2e512_{tcod,vanilla}_431_tok21504_profile_blas1_20260908_140105`
-showed a scheduling gap after all 32 prompts finished and before the next
-batch started. Across six gaps, TCOD averaged 56.10 seconds and Vanilla
-53.91 seconds. During those windows the three standalone rollout GPUs had
-zero utilization in 98.99% and 96.91% of the five-second samples, respectively.
-Evidence is in the run's `.profile/` and `.gpu.csv` files under the remote
-runtime log directory. These are observed idle windows, not a measured speedup.
-
-The async launcher now defaults to `ASYNC_PREFETCH=true` with
-`ASYNC_WARMUP_BATCHES=0`. After sampling the first mini-batch, the trainer
-submits one extra batch so standalone rollout can run during Actor updates.
-The next step consumes that submission instead of advancing the dataloader
-again. Save/final steps submit no lookahead; the remaining batch drains through
-the normal sampler, including one-for-one replacement of failed/stale prompts.
-Before saving, the trainer requires zero unconsumed prompt markers. This keeps
-the dataloader consistent with the weights without persisting a rollout queue.
-`FIRST_CHECKPOINT_STEP=16` adds one early save when checkpointing is enabled;
-with `SAVE_FREQ=64`, saves occur at 16, 64, 128, 192, 256 (and the final step
-if it differs). The early save drains prefetch too and is not repeated after
-resuming past step 16. Set `FIRST_CHECKPOINT_STEP=-1` to disable that extra save.
-Batch size, GPU allocation and weight-sync frequency remain launcher settings.
-Set `ASYNC_PREFETCH=false` (keeping warmup zero) for
-the serial-dispatch comparison. Prefetch requires off-policy threshold >= 2;
-continue reporting measured policy lag and trajectory spans.
-
-The CPU regression exercises the pinned veRL sampler and its actual dataloader
-save path, including save/final boundaries, out-of-order completion, failure
-and stale-sample replacement, and resumption without lost/duplicate rows.
-Runtime throughput after enabling prefetch must be measured separately; skip
-initialization/JIT steps and checkpoint drain steps when comparing steady state.
+Formal training uses one checkpoint-safe prefetched batch. Save and final steps
+stop lookahead, drain the remaining batch, and require zero unconsumed prompt
+markers before persisting dataloader state. Compare steady-state steps only;
+initialization, JIT and checkpoint-drain steps have different timing. Always
+report measured policy lag and trajectory span with throughput. Adopted results
+are summarized in `training_infrastructure.md`.

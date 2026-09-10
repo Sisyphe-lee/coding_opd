@@ -81,6 +81,7 @@ def test_external_eval_launcher_uses_only_authoritative_benchmarks() -> None:
     assert "RAY_ADDRESS must point to a dedicated Coding OPD Ray head" in launcher
     assert 'EVAL_TIER="${EVAL_TIER:-full}"' in launcher
     assert 'VLLM_CACHE_ROOT="${VLLM_CACHE_ROOT:-/var/lib/coding-opd-vllm-eval-cache}"' in launcher
+    assert 'configs/coding_react.yaml' in launcher
     assert '--vllm-cache-root "${VLLM_CACHE_ROOT}"' in launcher
     assert "summarize_external_eval.py" in launcher
     assert "swesmith" not in launcher.lower()

@@ -69,19 +69,18 @@ semantics under fixed Student weights and identical Teacher scoring. Validation
 bypasses Adaptive and retains the full configured horizon. The 0.1 threshold is
 an ALFWorld starting point, not a measured optimum for coding.
 
-The formal `scripts/run_r2e_opd_train.sh` entry point now uses the same synchronous
-schedule for all three algorithms: collect 32 episodes using fixed Student weights,
-accumulate microbatch gradients for one minibatch of 32, perform one optimizer
-update, synchronize weights, then collect the next batch. It sets
-`parameter_sync_step=1`, `ppo_epochs=1`, warmup=0, prefetch=false and hybrid GPU
-lending=false. The separate GPU resource-management mode remains named
-`separate_async`; generation and training do not overlap in this configuration.
-A reported step now means one optimizer update; historical runs used two updates.
-The TCOD curriculum remains indexed by the reported step, as before.
+The formal `scripts/run_r2e_opd_train.sh` entry point uses batch=minibatch=32, one
+optimizer update and one weight sync per batch. Vanilla and TCOD checkpoint-safely
+prefetch one following batch during the Actor update; steady-state measurement showed
+trajectory staleness mean/max 1 and span max 1. Adaptive keeps the complete batch
+barrier because its online Teacher frontier depends on the current policy, so it
+disables prefetch. All algorithms set `parameter_sync_step=1`, `ppo_epochs=1`, warmup=0
+and disable hybrid GPU lending. A reported step is one optimizer update; the TCOD
+curriculum uses that step.
 
 The legacy asynchronous performance-smoke launcher retains its measured recipe.
-`OPD_SYNC_ROLLOUTS=true` on that launcher only adds the batch barrier; use the formal
-training entry point for the complete no-policy-lag configuration.
+`OPD_SYNC_ROLLOUTS=true` on that launcher adds a batch barrier; use the formal training
+entry point for the current bounded-lag configuration.
 
 Implementation boundaries:
 
@@ -104,13 +103,10 @@ profiling adds `adaptive_teacher_turn` spans. Teacher prefill still processes th
 growing context, and each episode waits for its per-turn score. Actual speedup
 must therefore be measured against the saved tail, not assumed from fewer turns.
 
-For the current 4+3+1 topology and 21,504 Actor token budget, pass those resource
-overrides explicitly when preparing the run:
+Adaptive uses the same formal defaults as Vanilla and TCOD:
 
 ```bash
 OPD_ALGORITHM=adaptive ADAPTIVE_THRESHOLD=0.1 \
-ACTOR_GPUS=4 ROLLOUT_GPUS=3 TEACHER_GPUS=1 \
-PPO_MAX_TOKEN_LEN_PER_GPU=21504 \
 bash scripts/run_r2e_opd_train.sh
 ```
 
@@ -122,12 +118,13 @@ required before treating Adaptive as a measured training result.
 
 `configs/coding_react.yaml` is the single agent-facing configuration for R2E-Gym
 training and SWE-bench Verified evaluation. YAML anchors share the prompt, agent,
-tools and sandbox settings. Defaults remain 24 turns, 16,384 context tokens,
-4,096 output tokens per generation, temperature 0.7, top-p 0.95, top-k disabled,
-and a 900-second agent timeout. Actor and Teacher scoring temperatures and the
-K3 objective are unchanged. The public prompt and observed history are retained;
-no summarization or eviction is added. TCOD/Adaptive still apply their own
-training horizon decisions, while evaluation uses the common full horizon.
+tools and sandbox settings. The shared solver uses the upstream prompt, stateful
+shell, editor and submit tools, complete history, temperature 0.8, top-p 0.9,
+up to 100 turns, a 120-second shell timeout and native repetition detection.
+Training uses a 32,768-token total-context prefix. Evaluation may set a different
+explicit context budget while preserving the same prompt, tools and history
+semantics. TCOD/Adaptive apply their training horizon decisions; evaluation uses
+the full configured horizon.
 
 Native vLLM repetition detection stops 1–64-token patterns repeated 16 times
 consecutively. This is an initial conservative heuristic, not a measured optimum
@@ -145,6 +142,5 @@ Verified-64. Results carry protocol `shared-react-v1` and the configuration hash
 old Codex scores belong to a different protocol. Codex registrations reuse the
 same grader, preserving the old optional evaluation entry point.
 
-The formal launcher keeps the first checkpoint at step 16 and subsequent saves
-every 64 steps, with the Actor token budget defaulting to 21,504. No GPU validation
-or new training run is implied by these local code changes.
+The formal launcher uses 2 Actor + 4 rollout + 2 Teacher GPUs, gradient checkpointing,
+a 32,768-token Actor budget, and checkpoints at steps 16, 64, 128, 192 and 256.

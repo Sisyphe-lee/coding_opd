@@ -22,8 +22,8 @@ from uni_agent.tasks import TaskConfigResolver, get_task
 
 from coding_opd.codex_agent import (
     CodexCliAgent as CodexCliAgent,  # noqa: F401
-    summarize_codex_artifacts,
     resolve_auto_compact_limit,
+    summarize_codex_artifacts,
 )
 from coding_opd.deepswe_task import DeepSWETask as DeepSWETask  # noqa: F401
 from coding_opd.swebench_codex_task import VerifiedCodexTask as VerifiedCodexTask  # noqa: F401
