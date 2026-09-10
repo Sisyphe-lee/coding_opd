@@ -20,6 +20,9 @@ def main():
     parser.add_argument("--mtp", type=int, choices=[0, 1, 3], default=0)
     parser.add_argument("--tp", type=int, default=1)
     parser.add_argument("--temperature", type=float, required=True)
+    parser.add_argument("--top-p", type=float, default=0.95)
+    parser.add_argument("--top-k", type=int, default=20)
+    parser.add_argument("--max-model-len", type=int, default=65536)
     parser.add_argument("--contexts", type=int, nargs="+", default=[8192, 49152])
     parser.add_argument("--concurrency", type=int, nargs="+", default=[2, 4])
     parser.add_argument("--output-tokens", type=int, default=512)
@@ -30,12 +33,13 @@ def main():
 
     kwargs = dict(
         model=args.model, dtype="bfloat16", tensor_parallel_size=args.tp,
-        max_model_len=65536, max_num_seqs=max(args.concurrency),
+        max_model_len=args.max_model_len, max_num_seqs=max(args.concurrency),
         max_num_batched_tokens=8192, gpu_memory_utilization=0.8,
         attention_backend="FLASH_ATTN", gdn_prefill_backend="triton",
         enable_prefix_caching=True, mamba_cache_mode="align",
         language_model_only=True, seed=0, disable_log_stats=False,
         generation_config="vllm",
+        compilation_config={"cudagraph_mode": "FULL_DECODE_ONLY"},
     )
     if args.mtp:
         kwargs["speculative_config"] = {
@@ -67,7 +71,7 @@ def main():
     code = Path(__file__).read_text()
     chunk = tokenizer.encode(code, add_special_tokens=False)
     sampling = SamplingParams(
-        temperature=args.temperature, top_p=0.95, top_k=20,
+        temperature=args.temperature, top_p=args.top_p, top_k=args.top_k,
         min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0,
         max_tokens=args.output_tokens, ignore_eos=True, seed=0,
     )

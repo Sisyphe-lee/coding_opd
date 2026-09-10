@@ -2,7 +2,10 @@ import asyncio
 import json
 from pathlib import Path
 
+import pytest
+
 from coding_opd.r2e_task import RaySafeDockerSandbox, score_pytest_output
+from uni_agent.sandbox.base import ExecResult
 
 
 def test_score_pytest_output_supports_r2e_names() -> None:
@@ -84,4 +87,21 @@ def test_ray_safe_sandbox_stop_skips_podman_grace_period() -> None:
     asyncio.run(sandbox.stop())
 
     assert captured == [("rm", "-f", "--time", "0", "task-container")]
+    assert sandbox._container_name is None
+
+
+def test_missing_sandbox_image_fails_without_pulling_or_marking_started() -> None:
+    sandbox = RaySafeDockerSandbox(image="missing:tag", pull_policy="never")
+    captured: list[tuple[str, ...]] = []
+
+    async def fail_run(*args: str, timeout: float | None = None) -> ExecResult:
+        captured.append(args)
+        return ExecResult(exit_code=125, stdout="", stderr="image not known")
+
+    sandbox._run_docker = fail_run  # type: ignore[method-assign]
+    with pytest.raises(RuntimeError, match="image not known"):
+        asyncio.run(sandbox.start())
+    assert len(captured) == 1
+    assert captured[0][0] == "run"
+    assert captured[0][captured[0].index("--pull") + 1] == "never"
     assert sandbox._container_name is None

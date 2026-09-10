@@ -19,7 +19,7 @@
         - /personal/coding_opd/scripts/unix_socket_http_proxy.py:/opt/coding-opd/unix_socket_http_proxy.py:ro
         - --volume
         - /var/lib/coding-opd-codex-eval:/opt/coding-opd/model:ro
-  agent_timeout: 10800
+  agent_timeout: 2700
   eval_timeout: 1800
   agent:
     name: coding_opd_codex

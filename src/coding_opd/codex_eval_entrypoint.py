@@ -23,10 +23,12 @@ from uni_agent.tasks import TaskConfigResolver, get_task
 from coding_opd.codex_agent import (
     CodexCliAgent as CodexCliAgent,  # noqa: F401
     summarize_codex_artifacts,
+    resolve_auto_compact_limit,
 )
 from coding_opd.deepswe_task import DeepSWETask as DeepSWETask  # noqa: F401
 from coding_opd.swebench_codex_task import VerifiedCodexTask as VerifiedCodexTask  # noqa: F401
 from coding_opd.eval_data import sha256_file
+from coding_opd.sandbox_resources import thread_limit_args
 from coding_opd.eval_entrypoint import _task_id, validate_runtime_dataset
 
 logger = logging.getLogger(__name__)
@@ -89,9 +91,11 @@ def _run_identity(args: argparse.Namespace, runtime_manifest_sha256: str) -> dic
         "codex_reasoning_effort": args.reasoning_effort,
         "codex_reasoning_summary": args.reasoning_summary,
         "codex_context_window": args.context_window,
+        "codex_auto_compact_token_limit": args.auto_compact_token_limit,
         "backend_count": len(args.model_socket),
         "concurrency": args.concurrency,
         "tasks_per_replica": args.tasks_per_replica,
+        "task_cpu_threads": getattr(args, "task_cpu_threads", 2),
         "vllm_seed": args.vllm_seed,
         "serving_config": json.loads(args.serving_config_json),
         "selected_task_ids": args.task_id,
@@ -156,7 +160,13 @@ def _resume_records(args, identity, expected_task_ids):
             raise ValueError("resume source code change requires its explicitly reviewed full SHA")
         old.pop("repo_git_sha")
         new.pop("repo_git_sha")
-    for key in ("backend_count", "concurrency", "tasks_per_replica"):
+    reviewed_config = getattr(args, "resume_source_task_config_sha256", None)
+    if reviewed_config is not None:
+        if reviewed_config != old.get("task_config_sha256"):
+            raise ValueError("resume source task config does not match the reviewed hash")
+        old.pop("task_config_sha256", None)
+        new.pop("task_config_sha256", None)
+    for key in ("backend_count", "concurrency", "tasks_per_replica", "task_cpu_threads"):
         old.pop(key, None)
         new.pop(key, None)
     for config in (old, new):
@@ -188,6 +198,7 @@ def _resume_records(args, identity, expected_task_ids):
         "source_wall_seconds": payload.get("wall_seconds", 0),
         "previous_resume_provenance": payload.get("resume_provenance"),
         "reviewed_source_git_sha": approved_sha,
+        "reviewed_source_task_config_sha256": reviewed_config,
         "unfinished_tasks_restart_from_scratch": True,
     }
 
@@ -347,8 +358,13 @@ async def _run(
 ) -> dict[str, dict[str, Any]]:
     resolver = deepcopy(TaskConfigResolver.from_file(str(args.task_config)))
     for defaults in resolver.defaults_by_name.values():
+        sandbox_kwargs = defaults.setdefault("sandbox", {}).setdefault("sandbox_kwargs", {})
+        sandbox_kwargs["run_args"] = list(sandbox_kwargs.get("run_args") or []) + thread_limit_args(
+            getattr(args, "task_cpu_threads", 2)
+        )
         defaults["agent"].update(
             context_window=args.context_window,
+            auto_compact_token_limit=args.auto_compact_token_limit,
             reasoning_effort=args.reasoning_effort,
             reasoning_summary=args.reasoning_summary,
         )
@@ -408,18 +424,30 @@ def main() -> None:
     parser.add_argument("--reasoning-effort", default="xhigh")
     parser.add_argument("--reasoning-summary", default="auto")
     parser.add_argument("--context-window", type=int, default=262_144)
+    parser.add_argument("--task-cpu-threads", type=int, default=2)
+    parser.add_argument("--auto-compact-token-limit", type=int,
+                        help="Defaults to 90%% of context window; lower overrides are allowed")
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--tasks-per-replica", type=int, default=2)
     parser.add_argument("--vllm-seed", type=int, default=0)
     parser.add_argument("--serving-config-json", default="{}")
     parser.add_argument("--resume-from-result", type=Path,
                         help="Stopped source run; retain all completed scores, including zeros")
+    parser.add_argument("--resume-source-task-config-sha256",
+                        help="Reviewed source config hash; retain completed tasks under their original budget")
     parser.add_argument("--resume-source-git-sha",
                         help="Explicitly reviewed source full SHA when only orchestration code changed")
     parser.add_argument("--benchmark", choices=("deepswe", "swebench_verified"), default="deepswe")
     parser.add_argument("--task-id", action="append", default=[],
                         help="Retry selected tasks from a non-reportable canary only")
     args = parser.parse_args()
+    if args.task_cpu_threads < 1:
+        parser.error("--task-cpu-threads must be positive")
+    try:
+        args.auto_compact_token_limit = resolve_auto_compact_limit(
+            args.context_window, args.auto_compact_token_limit)
+    except ValueError as error:
+        parser.error(str(error))
     if args.concurrency < 1:
         parser.error("--concurrency must be positive")
     if args.tasks_per_replica < 1:

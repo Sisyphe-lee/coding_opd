@@ -7,10 +7,24 @@ STUDENT_MODEL="${STUDENT_MODEL:-${RUNTIME_ROOT}/models/Qwen3.5-9B}"
 TEACHER_MODEL="${TEACHER_MODEL:-${RUNTIME_ROOT}/models/Qwen3.8-27B}"
 TRAIN_FILE="${TRAIN_FILE:-${RUNTIME_ROOT}/datasets/r2e_opd_smoke.parquet}"
 VAL_FILE="${VAL_FILE:-${TRAIN_FILE}}"
-TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/r2e_react.yaml}"
+TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/coding_react.yaml}"
+OPD_ALGORITHM="${OPD_ALGORITHM:-vanilla}"
+TCOD_GROWTH_INTERVAL="${TCOD_GROWTH_INTERVAL:-2}"
+ADAPTIVE_THRESHOLD="${ADAPTIVE_THRESHOLD:-0.1}"
+OPD_SYNC_ROLLOUTS="${OPD_SYNC_ROLLOUTS:-false}"
+case "${OPD_ALGORITHM}" in
+  vanilla|tcod|adaptive) ;;
+  *) echo "OPD_ALGORITHM must be vanilla, tcod or adaptive" >&2; exit 1 ;;
+esac
+if [[ "${OPD_ALGORITHM}" == tcod && ! "${TCOD_GROWTH_INTERVAL}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "TCOD_GROWTH_INTERVAL must be a positive integer" >&2
+  exit 1
+fi
 LOG_DIR="${LOG_DIR:-${RUNTIME_ROOT}/logs}"
 RUN_NAME="${RUN_NAME:-r2e_opd_smoke_$(date +%Y%m%d_%H%M%S)}"
 EXPERIMENT_NAME="${EXPERIMENT_NAME:-${RUN_NAME}}"
+# Explicitly empty disables lightweight spans; each run/process gets its own file.
+CODING_OPD_PROFILE_DIR="${CODING_OPD_PROFILE_DIR-${LOG_DIR}/${RUN_NAME}.profile}"
 PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 CHECKPOINT_DIR="${CHECKPOINT_DIR:-${RUNTIME_ROOT}/checkpoints/${RUN_NAME}}"
 SAVE_FREQ="${SAVE_FREQ:--1}"
@@ -39,6 +53,8 @@ PARAMETER_SYNC_STEP="${PARAMETER_SYNC_STEP:-1}"
 MAX_OFF_POLICY_THRESHOLD="${MAX_OFF_POLICY_THRESHOLD:-1}"
 MAX_OFF_POLICY_STRATEGY="${MAX_OFF_POLICY_STRATEGY:-drop}"
 ASYNC_WARMUP_BATCHES="${ASYNC_WARMUP_BATCHES:-1}"
+ASYNC_PREFETCH="${ASYNC_PREFETCH:-false}"
+FIRST_CHECKPOINT_STEP="${FIRST_CHECKPOINT_STEP:--1}"
 HYBRID_ROLLOUT_ENABLE_SWITCH="${HYBRID_ROLLOUT_ENABLE_SWITCH:-false}"
 ROLLOUT_CORRECTION_BYPASS="${ROLLOUT_CORRECTION_BYPASS:-false}"
 AGENT_WORKERS="${AGENT_WORKERS:-1}"
@@ -85,7 +101,20 @@ IMAGE_PREFLIGHT="${IMAGE_PREFLIGHT:-true}"
 IMAGE_PREFLIGHT_SCRIPT="${IMAGE_PREFLIGHT_SCRIPT:-${REPO_ROOT}/scripts/check_r2e_images.py}"
 TASK_RUNNER_FQN="${TASK_RUNNER_FQN:-coding_opd.r2e_task.run_r2e_task}"
 DISTILLATION_KEY="${DISTILLATION_KEY:-r2e_gym}"
-RUN_TASK_EVALUATION="${RUN_TASK_EVALUATION:-true}"
+# This launcher uses direct K3 with task rewards disabled. Framework validation
+# still evaluates; training must not wait for an unused post-agent test suite.
+RUN_TASK_EVALUATION="${RUN_TASK_EVALUATION:-false}"
+
+# Preserve the existing GPU topology and two minibatches per step, but finish
+# the entire batch before training. No rollout from the next step is prefetched.
+if [[ "${OPD_ALGORITHM}" == adaptive ]]; then
+    OPD_SYNC_ROLLOUTS=true
+fi
+if [[ "${OPD_SYNC_ROLLOUTS}" == true ]]; then
+    ASYNC_WARMUP_BATCHES=0
+    ASYNC_PREFETCH=false
+    HYBRID_ROLLOUT_ENABLE_SWITCH=false
+fi
 
 case "${RESUME_MODE}" in
     disable|auto)
@@ -118,7 +147,21 @@ fi
 # TransferQueue 0.1.9 has no queue checkpoint API. With async warmup/prefetch,
 # its dataloader can advance past trajectories that have not reached an actor
 # update, so a saved dataloader state would skip those rows after restart.
-# A zero-warmup checkpoint run keeps exactly one submitted batch in flight.
+# Project prefetch requires zero upstream warmup and drains at save boundaries.
+if [[ "${ASYNC_PREFETCH}" != true && "${ASYNC_PREFETCH}" != false ]]; then
+    echo "ASYNC_PREFETCH must be true or false" >&2
+    exit 2
+fi
+if [[ "${FIRST_CHECKPOINT_STEP}" != -1 && ! "${FIRST_CHECKPOINT_STEP}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "FIRST_CHECKPOINT_STEP must be -1 (disabled) or a positive integer" >&2
+    exit 2
+fi
+if [[ "${TRAINER_MODE}" == separate_async && "${ASYNC_PREFETCH}" == true ]]; then
+    if (( ASYNC_WARMUP_BATCHES != 0 || MAX_OFF_POLICY_THRESHOLD < 2 )); then
+        echo "ASYNC_PREFETCH requires ASYNC_WARMUP_BATCHES=0 and MAX_OFF_POLICY_THRESHOLD>=2" >&2
+        exit 2
+    fi
+fi
 if [[ "${TRAINER_MODE}" == "separate_async" && "${SAVE_FREQ}" -gt 0 && "${ASYNC_WARMUP_BATCHES}" -gt 0 ]]; then
     if ! "${PYTHON_BIN}" - <<'PY'
 import transfer_queue as tq
@@ -193,6 +236,8 @@ case "${TRAINER_MODE}" in
             "actor_rollout_ref.rollout.checkpoint_engine.backend=${CHECKPOINT_ENGINE_BACKEND}"
             "trainer.v1.separate_async.parameter_sync_step=${PARAMETER_SYNC_STEP}"
             "trainer.v1.separate_async.num_warmup_batches=${ASYNC_WARMUP_BATCHES}"
+            "+trainer.v1.separate_async.checkpoint_safe_prefetch=${ASYNC_PREFETCH}"
+            "+trainer.v1.separate_async.first_checkpoint_step=${FIRST_CHECKPOINT_STEP}"
             "trainer.v1.separate_async.hybrid_rollout.enable_switch=${HYBRID_ROLLOUT_ENABLE_SWITCH}"
             "trainer.v1.sampler.max_off_policy_threshold=${MAX_OFF_POLICY_THRESHOLD}"
             "trainer.v1.sampler.max_off_policy_strategy=${MAX_OFF_POLICY_STRATEGY}"
@@ -216,6 +261,7 @@ esac
 
 mkdir -p "${LOG_DIR}" "${CHECKPOINT_DIR}"
 cd "${REPO_ROOT}"
+bash scripts/run_podman_service.sh --ensure
 
 export PYTHONPATH="${REPO_ROOT}/src:${REPO_ROOT}/third_party/verl:${REPO_ROOT}/third_party/uni-agent:${PYTHONPATH:-}"
 export PYTHONUNBUFFERED=1
@@ -305,12 +351,16 @@ fi
     actor_rollout_ref.rollout.agent.num_workers="${AGENT_WORKERS}" \
     +actor_rollout_ref.rollout.agent.agent_loop_manager_class=coding_opd.opd_framework.OPDAgentFrameworkRolloutAdapter \
     +actor_rollout_ref.rollout.custom.agent_framework.gateway_count=1 \
+    +actor_rollout_ref.rollout.custom.agent_framework.synchronous_rollouts="${OPD_SYNC_ROLLOUTS}" \
     +actor_rollout_ref.rollout.custom.agent_framework.log_dir="${LOG_DIR}/agents" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_fqn="${TASK_RUNNER_FQN}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.dispatch_mode=ray_task \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.max_concurrent_sessions="${MAX_CONCURRENT_SESSIONS}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.session_timeout_seconds=1200 \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.task_config_path="${TASK_CONFIG}" \
+    +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.opd_algorithm="${OPD_ALGORITHM}" \
+    +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.tcod_growth_interval="${TCOD_GROWTH_INTERVAL}" \
+    +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.adaptive_threshold="${ADAPTIVE_THRESHOLD}" \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.model_name=Qwen3.5-9B \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.report_reward=True \
     +actor_rollout_ref.rollout.custom.agent_framework.agent_runners.task.runner_kwargs.run_evaluation="${RUN_TASK_EVALUATION}" \
@@ -360,6 +410,7 @@ fi
     +ray_kwargs.ray_init.runtime_env.env_vars.VLLM_USE_FLASHINFER_SAMPLER="'${VLLM_USE_FLASHINFER_SAMPLER}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.VLLM_DISABLE_COMPILE_CACHE="'${VLLM_DISABLE_COMPILE_CACHE}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_VLLM_COMPILE_CACHE_ROOT="'${CODING_OPD_VLLM_COMPILE_CACHE_ROOT}'" \
+    +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_PROFILE_DIR="'${CODING_OPD_PROFILE_DIR}'" \
     "${TRAINER_MODE_ARGS[@]}" \
     "${CHECKPOINT_ENGINE_ARGS[@]}" \
     "${TRAINING_BUDGET_ARGS[@]}" \

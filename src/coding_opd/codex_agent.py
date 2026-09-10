@@ -24,10 +24,21 @@ class CodexCliConfig(AgentConfig):
     model_socket: str = "/opt/coding-opd/model/qwen.sock"
     api_port: int = Field(default=8000, ge=1, le=65535)
     context_window: int = Field(default=262_144, ge=4096)
+    auto_compact_token_limit: int | None = Field(default=None, ge=1)
     reasoning_effort: str = Field(default="xhigh", pattern="^(minimal|low|medium|high|xhigh)$")
     reasoning_summary: str = Field(default="auto", pattern="^(auto|concise|detailed|none)$")
     log_dir: str | None = None
     container_log_dir: str = "/opt/coding-opd/agent-logs"
+
+
+def resolve_auto_compact_limit(context_window: int, requested: int | None = None) -> int:
+    """Pin Codex's 90% default; reject overrides it would silently clamp."""
+    if context_window < 4096:
+        raise ValueError("context_window must be at least 4096")
+    maximum = context_window * 9 // 10
+    if requested is not None and not 1 <= requested <= maximum:
+        raise ValueError(f"auto_compact_token_limit must be between 1 and {maximum}")
+    return maximum if requested is None else requested
 
 
 def _instruction(messages: list[dict[str, Any]]) -> str:
@@ -88,8 +99,41 @@ def summarize_codex_artifacts(log_dir: Path) -> dict[str, Any]:
     output = raw_path.read_text(encoding="utf-8", errors="replace") if raw_path.exists() else ""
     _, summary = _summarize_jsonl(output)
     session_files = sorted((log_dir / "codex-home" / "sessions").rglob("*.jsonl"))
+    compactions = 0
+    max_request_tokens = 0
+    last_request_tokens = 0
+    session_parse_errors = 0
+    for path in session_files:
+        with path.open(encoding="utf-8", errors="replace") as stream:
+            for line in stream:
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    session_parse_errors += 1
+                    continue
+                if not isinstance(event, dict):
+                    session_parse_errors += 1
+                    continue
+                # Count durable history replacements, not start/progress messages.
+                if event.get("type") == "compacted":
+                    compactions += 1
+                payload = event.get("payload")
+                if event.get("type") != "event_msg" or not isinstance(payload, dict):
+                    continue
+                if payload.get("type") != "token_count":
+                    continue
+                info = payload.get("info")
+                usage = info.get("last_token_usage") if isinstance(info, dict) else None
+                total = usage.get("total_tokens") if isinstance(usage, dict) else None
+                if isinstance(total, int) and not isinstance(total, bool) and total >= 0:
+                    last_request_tokens = total
+                    max_request_tokens = max(max_request_tokens, total)
     summary.update(
         {
+            "compaction_count": compactions,
+            "max_request_total_tokens": max_request_tokens,
+            "last_request_total_tokens": last_request_tokens,
+            "session_parse_errors": session_parse_errors,
             "raw_jsonl_path": str(raw_path),
             "raw_jsonl_bytes": raw_path.stat().st_size if raw_path.exists() else 0,
             "session_files": [str(path) for path in session_files],
@@ -113,6 +157,7 @@ class CodexCliAgent(Agent):
         workdir: str | None = None,
     ) -> AgentResult:
         cfg: CodexCliConfig = self.config  # type: ignore[assignment]
+        compact_limit = resolve_auto_compact_limit(cfg.context_window, cfg.auto_compact_token_limit)
         model_name = cfg.model.model_name
         if not model_name:
             raise ValueError("coding_opd_codex: agent.model.model_name is required")
@@ -128,6 +173,7 @@ class CodexCliAgent(Agent):
         api_base = f"http://127.0.0.1:{cfg.api_port}/v1"
         config_toml = f'''model_provider = "coding_opd_local"
 model_context_window = {cfg.context_window}
+model_auto_compact_token_limit = {compact_limit}
 model_supports_reasoning_summaries = true
 model_reasoning_summary = "{cfg.reasoning_summary}"
 approval_policy = "never"
@@ -253,9 +299,11 @@ supports_websockets = false
                 "reasoning_effort": cfg.reasoning_effort,
                 "reasoning_summary": cfg.reasoning_summary,
                 "context_window": cfg.context_window,
+                "auto_compact_token_limit": compact_limit,
             }
         )
         info.update(summarize_codex_artifacts(host_log_dir))
+        info["context_limit_reached"] = info["max_request_total_tokens"] >= cfg.context_window
         if completed.exit_code != 0:
             logger.warning(
                 "Codex CLI exited with %s after %.1fs: %s",

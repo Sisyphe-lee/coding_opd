@@ -9,4 +9,17 @@ export VAL_FILE="${VAL_FILE:-${TRAIN_FILE}}"
 export ROLLOUT_BUDGET="${ROLLOUT_BUDGET:-2048}"
 export RUN_NAME="${RUN_NAME:-r2e_opd_train_$(date +%Y%m%d_%H%M%S)}"
 
+# Research baseline: one fresh batch, one optimizer update, then weight sync.
+# Keep dynamic microbatching; minibatch size is the accumulated update batch.
+export TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-32}"
+export PPO_MINI_BATCH_SIZE="${TRAIN_BATCH_SIZE}"
+export PARAMETER_SYNC_STEP=1
+export OPD_SYNC_ROLLOUTS=true
+export MAX_OFF_POLICY_THRESHOLD=1
+export ASYNC_WARMUP_BATCHES=0
+export ASYNC_PREFETCH=false
+export HYBRID_ROLLOUT_ENABLE_SWITCH=false
+export PPO_MAX_TOKEN_LEN_PER_GPU="${PPO_MAX_TOKEN_LEN_PER_GPU:-21504}"
+export SAVE_FREQ="${SAVE_FREQ:-64}"
+
 exec bash "$(dirname "$0")/run_r2e_opd_async_smoke.sh" "$@"

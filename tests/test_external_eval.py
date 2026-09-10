@@ -144,3 +144,40 @@ def test_deepswe_portable_dockerfile_rejects_non_executable_source(tmp_path: Pat
     (context / "Dockerfile").write_text("RUN chmod +x /tests/test.sh\n", encoding="utf-8")
     with pytest.raises(ValueError, match="must already be executable"):
         portable_deepswe_verifier_dockerfile(context)
+
+
+def test_quick_first_evaluation_runs_complement_once_and_resumes(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from coding_opd import eval_entrypoint as evaluation
+
+    samples = [{"extra_info": {"task_id": name}} for name in ("a", "b", "c")]
+    assert evaluation.evaluation_stages(samples, ["b"]) == [[samples[1]], [samples[0], samples[2]]]
+    with pytest.raises(ValueError, match="contained"):
+        evaluation.evaluation_stages(samples, ["missing"])
+    config_file = tmp_path / "config"
+    config_file.write_text("unchanged")
+    args = SimpleNamespace(result_path=tmp_path / "result.json", task_config=config_file,
+                           runtime_manifest=config_file, model_path=tmp_path / "model",
+                           data_path=tmp_path / "full.parquet", served_model_name="student",
+                           n=1, quick_first=True, split="full")
+    manifest = {"benchmark": "test", "splits": {"quick": {"task_ids": ["b"]}}}
+    calls, scores = [], {}
+
+    class Adapter:
+        def generate_sequences_and_wait(self, prompts):
+            rows, uids = prompts
+            calls.append([row["extra_info"]["task_id"] for row in rows])
+            scores.update({uid: [1.0] for uid in uids})
+
+    monkeypatch.setattr(evaluation.LLMServerManager, "create", lambda **kw: SimpleNamespace(get_client=lambda: None))
+    monkeypatch.setattr(evaluation.OPDAgentFrameworkRolloutAdapter, "create", lambda **kw: Adapter())
+    monkeypatch.setattr(evaluation, "_build_prompts", lambda rows, uids: (rows, uids))
+    monkeypatch.setattr(evaluation, "_read_scores", lambda uids: (
+        {uid: scores[uid] for uid in uids if uid in scores}, {uid: "success" for uid in uids}))
+    monkeypatch.setattr(evaluation.time, "sleep", lambda _: None)
+    evaluation._evaluate(args, None, samples, manifest)
+    assert calls == [["b"], ["a", "c"]]
+    assert json.loads(args.result_path.read_text())["completed_tasks"] == 3
+    assert json.loads((tmp_path / "quick_result.json").read_text())["num_tasks"] == 1
+    evaluation._evaluate(args, None, samples, manifest)
+    assert calls == [["b"], ["a", "c"]]

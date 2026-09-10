@@ -7,8 +7,8 @@ PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 MODEL_PATH="${MODEL_PATH:-${RUNTIME_ROOT}/models/Qwen3.5-9B}"
 BENCHMARK="${BENCHMARK:-deepswe}"
 case "${BENCHMARK}" in
-    deepswe) default_task_config=deepswe_codex.yaml ;;
-    swebench_verified) default_task_config=swebench_codex.yaml ;;
+    deepswe) default_task_config=deepswe_codex.yaml; default_eval_bundle=coding_opd_eval_v2 ;;
+    swebench_verified) default_task_config=swebench_codex.yaml; default_eval_bundle=coding_opd_eval_v3 ;;
     *) echo "Unsupported benchmark: ${BENCHMARK}" >&2; exit 2 ;;
 esac
 SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-$(basename "${MODEL_PATH}")}"
@@ -25,6 +25,7 @@ SAMPLING_PROFILE="${SAMPLING_PROFILE:-student}"
 DRY_RUN="${DRY_RUN:-false}"
 VLLM_SEED="${VLLM_SEED:-0}"
 CONTEXT_WINDOW="${CONTEXT_WINDOW:-262144}"
+AUTO_COMPACT_TOKEN_LIMIT="${AUTO_COMPACT_TOKEN_LIMIT:-}"
 REASONING_EFFORT="${REASONING_EFFORT:-xhigh}"
 REASONING_SUMMARY="${REASONING_SUMMARY:-auto}"
 VLLM_CACHE_ROOT="${VLLM_CACHE_ROOT:-/var/lib/coding-opd-vllm-eval-cache}"
@@ -32,9 +33,18 @@ MODEL_SOCKET_DIR="${MODEL_SOCKET_DIR:-/var/lib/coding-opd-codex-eval}"
 RUN_NAME="${RUN_NAME:-${BENCHMARK}_codex_${SERVED_MODEL_NAME}_${EVAL_TIER}_$(date +%Y%m%d_%H%M%S)}"
 RUN_ROOT="${RUNTIME_ROOT}/eval_results/${RUN_NAME}"
 LOG_ROOT="${RUNTIME_ROOT}/logs/eval/${RUN_NAME}"
-FULL_ROOT="${EVAL_ROOT:-${RUNTIME_ROOT}/datasets/coding_opd_eval_v2/${BENCHMARK}}"
+FULL_ROOT="${EVAL_ROOT:-${RUNTIME_ROOT}/datasets/${default_eval_bundle}/${BENCHMARK}}"
 TASK_CONFIG="${TASK_CONFIG:-${REPO_ROOT}/configs/${default_task_config}}"
 LANGUAGE_MODEL_ONLY="${LANGUAGE_MODEL_ONLY:-true}"
+
+[[ "${CONTEXT_WINDOW}" =~ ^[1-9][0-9]*$ ]] && (( CONTEXT_WINDOW >= 4096 )) || {
+    echo "CONTEXT_WINDOW must be an integer >= 4096" >&2; exit 2;
+}
+AUTO_COMPACT_TOKEN_LIMIT="${AUTO_COMPACT_TOKEN_LIMIT:-$((CONTEXT_WINDOW * 9 / 10))}"
+[[ "${AUTO_COMPACT_TOKEN_LIMIT}" =~ ^[1-9][0-9]*$ ]] && \
+    (( AUTO_COMPACT_TOKEN_LIMIT <= CONTEXT_WINDOW * 9 / 10 )) || {
+    echo "AUTO_COMPACT_TOKEN_LIMIT must be positive and <= 90% of CONTEXT_WINDOW" >&2; exit 2;
+}
 
 # The role is explicit: exported OPD paths are often named "huggingface".
 # Never infer sampling settings from the checkpoint directory or service alias.
@@ -258,6 +268,8 @@ entrypoint_args=(
     --reasoning-effort "${REASONING_EFFORT}"
     --reasoning-summary "${REASONING_SUMMARY}"
     --context-window "${CONTEXT_WINDOW}"
+    --task-cpu-threads "${TASK_CPU_THREADS:-2}"
+    --auto-compact-token-limit "${AUTO_COMPACT_TOKEN_LIMIT}"
     --concurrency "$((REPLICA_COUNT * TASKS_PER_REPLICA))"
     --tasks-per-replica "${TASKS_PER_REPLICA}"
     --vllm-seed "${VLLM_SEED}"
@@ -272,6 +284,9 @@ if [[ -n "${RESUME_FROM_RESULT:-}" ]]; then
 fi
 if [[ -n "${RESUME_SOURCE_GIT_SHA:-}" ]]; then
     entrypoint_args+=(--resume-source-git-sha "${RESUME_SOURCE_GIT_SHA}")
+fi
+if [[ -n "${RESUME_SOURCE_TASK_CONFIG_SHA256:-}" ]]; then
+    entrypoint_args+=(--resume-source-task-config-sha256 "${RESUME_SOURCE_TASK_CONFIG_SHA256}")
 fi
 if [[ -n "${RETRY_TASK_IDS:-}" ]]; then
     IFS=',' read -r -a retry_task_ids <<<"${RETRY_TASK_IDS}"

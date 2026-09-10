@@ -235,3 +235,16 @@ ROLLOUT_BUDGET=128 bash scripts/run_swesmith_opd_async_smoke.sh
 - 不停止、修改或复用其他项目的 Ray/process tree。
 - GPU 6/7 可与低显存、间歇运行的 PhysicalAgent 共存，但 Coding OPD 正式训练仍使用全部
   八卡，只为共享负载保留必要显存余量。
+
+### 当前训练／评测对齐配置
+
+R2E 正式训练 `scripts/run_r2e_opd_train.sh` 与 Verified 评测
+`scripts/run_external_eval.sh swebench_verified` 共用
+[`configs/coding_react.yaml`](configs/coding_react.yaml)。正式训练每批 32 条 rollout
+结束后仅更新一次并同步权重，关闭预取和 policy lag。保留 16K context、24 轮、
+单次 4K 输出预算，启用原生重复停止；评测在新容器中对补丁独立判分。
+Verified-64 请显式设置 `EVAL_TIER=quick`。新协议不与旧 Codex 分数混算。
+设置 `EVAL_TIER=full QUICK_FIRST=true` 可先测 64 题，再继续其余 436 题；
+`COMPARE_MODEL_PATH` 可在同一八卡节点上让两个模型各用四卡。
+结果持续保存；使用相同 `RUN_NAME` 重启会跳过已判分题目。
+实现与验证边界见 [OPD algorithms](docs/opd_algorithms.md)。

@@ -8,6 +8,7 @@ import pytest
 from uni_agent.tasks import TaskConfigResolver
 
 from coding_opd.codex_agent import _instruction, _summarize_jsonl, summarize_codex_artifacts
+from coding_opd.codex_agent import resolve_auto_compact_limit
 from coding_opd.codex_eval_entrypoint import _load_records, _safe_name
 from coding_opd import codex_eval_entrypoint as entrypoint
 from coding_opd.deepswe_task import DeepSWETask as DeepSWETask  # noqa: F401
@@ -44,6 +45,35 @@ def test_codex_jsonl_summary_preserves_usage_and_agent_message() -> None:
 
 def test_codex_instruction_keeps_single_user_prompt_exact() -> None:
     assert _instruction([{"role": "user", "content": "task text"}]) == "task text"
+
+
+def test_auto_compact_threshold_is_explicit_and_bounded():
+    assert resolve_auto_compact_limit(262144) == 235929
+    assert resolve_auto_compact_limit(272000) == 244800
+    assert resolve_auto_compact_limit(262144, 210000) == 210000
+    for context, limit in [(262144, 260000), (262144, 0), (1000, None)]:
+        with pytest.raises(ValueError):
+            resolve_auto_compact_limit(context, limit)
+
+
+def test_session_compaction_and_context_usage_diagnostics(tmp_path):
+    session = tmp_path / "codex-home/sessions/rollout.jsonl"
+    session.parent.mkdir(parents=True)
+    events = [
+        {"type": "event_msg", "payload": {"type": "token_count", "info": {
+            "last_token_usage": {"total_tokens": 262144}}}},
+        {"type": "compacted", "payload": {"message": "summary"}},
+        {"type": "event_msg", "payload": {"type": "token_count", "info": {
+            "last_token_usage": {"total_tokens": 5000}}}},
+        {"type": "event_msg", "payload": {"type": "token_count", "info": None}},
+        None,
+    ]
+    session.write_text("\n".join(map(json.dumps, events)) + "\ntruncated")
+    result = summarize_codex_artifacts(tmp_path)
+    assert result["compaction_count"] == 1
+    assert result["max_request_total_tokens"] == 262144
+    assert result["last_request_total_tokens"] == 5000
+    assert result["session_parse_errors"] == 2
 
 
 def test_codex_jsonl_ignores_valid_json_non_events():
@@ -91,7 +121,7 @@ def test_resume_records_are_locked_to_run_fingerprint(tmp_path: Path) -> None:
 def test_resource_resume_preserves_zero_and_trailing_record(tmp_path):
     source = tmp_path / "source"
     (source / "records").mkdir(parents=True)
-    old = dict(repo_git_sha="a" * 40, protocol="verified", model_path="student",
+    old = dict(repo_git_sha="a" * 40, task_config_sha256="c" * 64, protocol="verified", model_path="student",
                sampling_config={"temperature": 0.6}, backend_count=4, concurrency=32,
                tasks_per_replica=8, serving_config=dict(gpu_groups=[[0], [1], [2], [3]],
                replica_count=4, tasks_per_replica=8, total_task_concurrency=32,
@@ -108,7 +138,7 @@ def test_resource_resume_preserves_zero_and_trailing_record(tmp_path):
     args = SimpleNamespace(resume_from_result=result, result_path=tmp_path / "new.json",
                            resume_source_git_sha="a" * 40)
     new = deepcopy(old)
-    new.update(repo_git_sha="b" * 40, backend_count=2, concurrency=16)
+    new.update(repo_git_sha="b" * 40, backend_count=2, concurrency=16, task_cpu_threads=2)
     new["serving_config"].update(gpu_groups=[[0], [1]], replica_count=2,
                                   total_task_concurrency=16)
     loaded, provenance = entrypoint._resume_records(args, new, {"zero", "pass", "pending"})
@@ -128,6 +158,20 @@ def test_resource_resume_preserves_zero_and_trailing_record(tmp_path):
             entrypoint._resume_records(args, incompatible, {"zero", "pass"})
     with pytest.raises(ValueError, match="unexpected task record"):
         entrypoint._resume_records(args, new, {"zero"})
+
+
+    changed = deepcopy(new)
+    changed["task_config_sha256"] = "d" * 64
+    with pytest.raises(ValueError, match="evaluation semantics"):
+        entrypoint._resume_records(args, changed, {"zero", "pass"})
+    args.resume_source_task_config_sha256 = "wrong"
+    with pytest.raises(ValueError, match="reviewed hash"):
+        entrypoint._resume_records(args, changed, {"zero", "pass"})
+    args.resume_source_task_config_sha256 = "c" * 64
+    loaded, provenance = entrypoint._resume_records(args, changed, {"zero", "pass"})
+    assert loaded == {r["task_id"]: r for r in records}
+    assert provenance["reviewed_source_task_config_sha256"] == "c" * 64
+    assert json.loads(result.read_text()) == payload
 
 
 def test_deepswe_codex_config_is_network_isolated_and_uses_256k() -> None:

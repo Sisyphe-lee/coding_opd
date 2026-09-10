@@ -12,6 +12,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from coding_opd.profiling import profile_span
+from coding_opd.react_agent import CodingReActAgent as CodingReActAgent  # noqa: F401
+
 from uni_agent.framework.task_runner import run_task as _run_task
 from uni_agent.sandbox.base import ExecResult
 from uni_agent.sandbox.docker import DockerSandbox
@@ -53,7 +56,8 @@ class ConciseEditFileTool(EditFileTool):
     config_model = ConciseEditFileConfig
 
     async def run(self, args: dict[str, Any], *, timeout: float | None = None) -> ToolResult:
-        result = await super().run(args, timeout=timeout)
+        with profile_span("tool", tool="str_replace_editor"):
+            result = await super().run(args, timeout=timeout)
         cfg: ConciseEditFileConfig = self.config  # type: ignore[assignment]
         return cap_tool_result(result, cfg.max_output_chars)
 
@@ -61,6 +65,66 @@ class ConciseEditFileTool(EditFileTool):
 @register_sandbox("coding_opd_podman")
 class RaySafeDockerSandbox(DockerSandbox):
     """Docker-compatible sandbox whose subprocess waits are safe in Ray workers."""
+
+    def __init__(self, *, process_memory_limit_mb: int = 8192, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        if (
+            isinstance(process_memory_limit_mb, bool)
+            or not isinstance(process_memory_limit_mb, int)
+            or process_memory_limit_mb < 1
+        ):
+            raise ValueError("process_memory_limit_mb must be a positive integer")
+        self.process_memory_limit_mb = process_memory_limit_mb
+
+    async def start(self) -> None:
+        """Let `run --pull never` check availability without a separate inspect."""
+        if self._container_name is not None:
+            return
+        name = self.container_name or f"uni-agent-{uuid.uuid4().hex[:12]}"
+        args = ["run", "--rm", "-d", "--name", name, "--pull", self.pull_policy]
+        if self.entrypoint:
+            args.extend(["--entrypoint", self.entrypoint])
+        args.extend(self.run_args)
+        args.append(self.image)
+        args.extend(self.command)
+        started = await self._run_docker(*args)
+        if started.exit_code != 0:
+            detail = started.stderr.strip() or started.stdout.strip()
+            raise RuntimeError(f"Failed to start Docker sandbox from {self.image!r}: {detail}")
+        self._container_name = name
+
+    async def _exec(self, argv, *, timeout=None, workdir=None, env=None) -> ExecResult:
+        # cgroups are disabled in the nested runtime. RLIMIT_AS bounds each
+        # command process (and is inherited by children), including pytest.
+        command = ["bash", "-c", 'ulimit -v "$1" || exit; shift; exec "$@"',
+                   "opd-limited-command", str(self.process_memory_limit_mb * 1024)]
+        if timeout is not None:
+            # Run timeout INSIDE the container: killing only `podman exec`
+            # leaves the actual test and its children alive. GNU timeout owns
+            # a process group. Kill it directly: TERM can let the shell exit
+            # before an ignoring child, cancelling timeout's escalation timer.
+            command += ["timeout", "--signal=KILL", f"{timeout}s"]
+        command += list(argv)
+        try:
+            pending = asyncio.create_task(super()._exec(
+                command, timeout=None if timeout is None else timeout + 15,
+                workdir=workdir, env=env,
+            ))
+            try:
+                result = await asyncio.shield(pending)
+            except asyncio.CancelledError:
+                # The in-container timeout bounds tool execution. Let it finish
+                # before patch collection instead of deleting the agent sandbox.
+                await pending
+                raise
+        except TimeoutError:
+            # Fallback for an unresponsive runtime or cancelled Ray task.
+            await asyncio.shield(self.stop())
+            raise
+        if timeout is not None and result.exit_code in (124, 137):
+            return ExecResult(exit_code=-1, stdout=result.stdout,
+                              stderr=result.stderr + f"\ncommand timed out after {timeout}s; process group terminated")
+        return result
 
     async def _run_docker(self, *args: str, timeout: float | None = None) -> ExecResult:
         def run() -> subprocess.CompletedProcess[bytes]:
@@ -72,10 +136,12 @@ class RaySafeDockerSandbox(DockerSandbox):
                 check=False,
             )
 
-        try:
-            completed = await asyncio.to_thread(run)
-        except subprocess.TimeoutExpired as exc:
-            raise TimeoutError(f"sandbox command timed out after {timeout}s") from exc
+        with profile_span("sandbox", operation=args[0], image=self.image) as span:
+            try:
+                completed = await asyncio.to_thread(run)
+                span["exit_code"] = completed.returncode
+            except subprocess.TimeoutExpired as exc:
+                raise TimeoutError(f"sandbox command timed out after {timeout}s") from exc
         return ExecResult(
             exit_code=completed.returncode,
             stdout=completed.stdout.decode("utf-8", errors="replace"),
@@ -122,6 +188,12 @@ class RaySafeShellTool(Tool):
         self._cwd = "/"
 
     async def run(self, args: dict[str, Any], *, timeout: float | None = None) -> ToolResult:
+        with profile_span("tool", tool="shell") as span:
+            result = await self._run(args, timeout=timeout)
+            span["tool_status"] = result.status
+            return result
+
+    async def _run(self, args: dict[str, Any], *, timeout: float | None = None) -> ToolResult:
         command = str(args.get("command") or "")
         if not command.strip():
             return ToolResult(text="Error: Parameter `command` is required.", status="format_error")
@@ -164,6 +236,7 @@ class RaySafeShellTool(Tool):
 
 class R2EGymTaskConfig(TaskConfig):
     name: str = "r2e_gym"
+    run_evaluation: bool = True
     agent_timeout: float = Field(default=900.0, gt=0)
     eval_timeout: float = Field(default=300.0, gt=0)
 
@@ -257,24 +330,71 @@ class R2EGymTask(Task):
                 finished = False
                 agent_info = {"error": f"{type(exc).__name__}: {exc}"}
 
-            evaluation = await sandbox.exec(
-                ["bash", "./run_tests.sh"],
-                timeout=cfg.eval_timeout,
-                workdir="/testbed",
-            )
-            output = evaluation.stdout + evaluation.stderr
-            result = score_pytest_output(metadata["expected_output_json"], output, evaluation.exit_code)
+            if cfg.run_evaluation:
+                evaluation = await sandbox.exec(
+                    ["bash", "./run_tests.sh"],
+                    timeout=cfg.eval_timeout,
+                    workdir="/testbed",
+                )
+                output = evaluation.stdout + evaluation.stderr
+                result = score_pytest_output(metadata["expected_output_json"], output, evaluation.exit_code)
+            else:
+                # Pure OPD does not consume executable rewards. Return as soon
+                # as interaction ends; do not block Teacher scoring on pytest.
+                result = {"reward": 0.0}
+                logger.info("Post-agent evaluation skipped for pure OPD training")
+            result["evaluation_ran"] = cfg.run_evaluation
             result["agent"] = agent_info
 
         score = float(result["reward"])
         return TaskResult(
             reward=score,
-            accuracy=score,
+            accuracy=score if cfg.run_evaluation else None,
             finished=finished,
             extra_info=result,
         )
 
 
-async def run_r2e_task(**kwargs: Any) -> TaskResult:
+async def run_r2e_task(
+    *, opd_algorithm: str = "vanilla", tcod_growth_interval: int = 2,
+    adaptive_threshold: float = 0.1,
+    run_evaluation: bool | None = None, **kwargs: Any
+) -> TaskResult:
     """Uni-Agent runner entry point; importing this module registers r2e_gym."""
-    return await _run_task(**kwargs)
+    from coding_opd.algorithms import get_algorithm
+    from uni_agent.tasks.config import TaskConfigResolver
+
+    algorithm = get_algorithm(opd_algorithm, growth_interval=tcod_growth_interval, threshold=adaptive_threshold)
+    tools_kwargs = dict(kwargs.get("tools_kwargs") or {})
+    progress = tools_kwargs.get("_opd_progress")
+    if opd_algorithm != "vanilla":
+        if progress is None:
+            raise ValueError(f"{opd_algorithm} requires explicit _opd_progress from the OPD framework")
+        if progress["training"]:
+            config_path = kwargs.get("task_config_path")
+            resolver = TaskConfigResolver.from_file(config_path) if config_path else TaskConfigResolver()
+            task = resolver.resolve(tools_kwargs["task"])
+            agent = dict(task.get("agent") or {})
+            # Match the ReAct default when neither YAML nor the sample sets it.
+            max_turns = agent.get("max_steps", 50)
+            horizon = algorithm.rollout_max_turns(progress["step"], max_turns)
+            agent["max_steps"] = horizon
+            tools_kwargs["task"] = {**task, "agent": agent}
+            kwargs["tools_kwargs"] = tools_kwargs
+            logger.info(
+                "OPD algorithm=%s step=%s horizon=%s max_turns=%s",
+                opd_algorithm, progress["step"], horizon, max_turns,
+            )
+    if run_evaluation is not None:
+        # Framework validation always measures task success. Standalone runs
+        # retain the Task Config default unless explicitly overridden.
+        evaluate = True if progress is not None and not progress["training"] else run_evaluation
+        tools_kwargs["task"] = {**tools_kwargs["task"], "run_evaluation": evaluate}
+        kwargs["tools_kwargs"] = tools_kwargs
+    identity = tools_kwargs.get("_trace_identity") or {}
+    with profile_span(
+        "agent_task", algorithm=opd_algorithm,
+        **{key: identity[key] for key in ("uid", "sample", "session", "session_id") if key in identity},
+        step=identity.get("global_steps"),
+    ):
+        return await _run_task(**kwargs)

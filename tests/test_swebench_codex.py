@@ -50,7 +50,7 @@ def test_verified_codex_prompt_excludes_hidden_metadata():
     assert "Fix public issue" in prompt
     assert "SECRET" not in prompt
     assert "no git commit is required" in prompt
-    assert task.config.agent_timeout == 10800
+    assert task.config.agent_timeout == 2700
     assert task.config.eval_timeout == 1800
 
 
@@ -63,6 +63,7 @@ def test_verified_scheduler_accepts_verified_defaults():
     args = SimpleNamespace(
         task_config=Path(__file__).parents[1] / "configs/swebench_codex.yaml",
         context_window=262144, reasoning_effort="xhigh", reasoning_summary="auto",
+        auto_compact_token_limit=235929,
         concurrency=2, tasks_per_replica=2, model_socket=["/example.sock"],
     )
     result = asyncio.run(_run(args, [], records={}, runtime_manifest={}, identity={},

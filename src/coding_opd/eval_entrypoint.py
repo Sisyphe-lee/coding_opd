@@ -8,6 +8,8 @@ import logging
 import os
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from copy import copy
 from pathlib import Path
 from uuid import uuid4
 
@@ -23,7 +25,8 @@ try:
 except ImportError:
     from verl.utils.transferqueue_utils import tq
 
-from uni_agent.framework.entry import AgentFrameworkRolloutAdapter
+from coding_opd.opd_framework import OPDAgentFrameworkRolloutAdapter
+from coding_opd.rollout_config import configure_coding_rollout
 from uni_agent.tasks import TaskConfigResolver
 from verl.utils import tensordict_utils as tu
 from verl.workers.rollout.llm_server import LLMServerManager
@@ -101,6 +104,8 @@ def init_config(args: argparse.Namespace, *, task_configs: list[dict], served_mo
     rollout.top_p = top_p
     rollout.val_kwargs.temperature = temperature
     rollout.val_kwargs.top_p = top_p
+    rollout.top_k = int(model_cfgs[0].get("top_k", -1))
+    rollout.val_kwargs.top_k = rollout.top_k
     rollout.n = args.n
     rollout.val_kwargs.n = args.n
     rollout.nnodes = 1
@@ -113,9 +118,12 @@ def init_config(args: argparse.Namespace, *, task_configs: list[dict], served_mo
     rollout.load_format = "auto"
     rollout.prompt_length = 4096
     rollout.response_length = response_length
-    rollout.max_model_len = response_length + 4097
+    # The task budget already includes prompt, observations and generated text.
+    rollout.max_model_len = response_length
     rollout.tensor_model_parallel_size = args.tensor_parallel_size
     rollout.gpu_memory_utilization = args.gpu_memory_utilization
+    rollout.max_num_seqs = args.concurrency
+    rollout.max_num_batched_tokens = 8192
     rollout.calculate_log_probs = False
     rollout.disable_log_stats = False
     rollout.free_cache_engine = False
@@ -148,10 +156,15 @@ def init_config(args: argparse.Namespace, *, task_configs: list[dict], served_mo
                 "runner_fqn": task_runner_fqn(task_configs),
                 "dispatch_mode": "ray_task",
                 "max_concurrent_sessions": args.concurrency,
+                "session_timeout_seconds": max(
+                    int(entry.get("agent_timeout", 900)) + int(entry.get("eval_timeout", 1800)) + 600
+                    for entry in task_configs
+                ),
                 "runner_kwargs": {
                     "task_config_path": str(args.task_config),
                     "model_name": served_model_name,
                     "report_reward": True,
+                    "verification_root": str(args.log_dir.parent / "verification"),
                 },
             }
         },
@@ -240,18 +253,93 @@ def _write_result(
         "runtime_manifest": str(args.runtime_manifest),
         "runtime_manifest_sha256": sha256_file(args.runtime_manifest),
         "served_model_name": served_model_name,
+        "task_config": str(args.task_config),
+        "task_config_sha256": sha256_file(args.task_config),
+        "protocol": "shared-react-v1",
         "split": args.split,
         "num_tasks": len(samples),
         "n": args.n,
         "expected_sessions": len(samples) * args.n,
         "scored_sessions": sum(record["scored_sessions"] for record in records),
+        "completed_tasks": sum(record["scored_sessions"] >= args.n for record in records),
         "mean_score": float(np.mean(all_scores)) if all_scores else 0.0,
         "wall_seconds": wall_seconds,
         "tasks": records,
     }
     args.result_path.parent.mkdir(parents=True, exist_ok=True)
-    args.result_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary = args.result_path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(args.result_path)
     print(json.dumps({key: payload[key] for key in ("mean_score", "num_tasks", "scored_sessions", "wall_seconds")}, sort_keys=True))
+
+
+def evaluation_stages(samples, quick_ids):
+    """One pass over each task: the frozen quick panel first, then its complement."""
+    if not quick_ids:
+        return [samples]
+    by_id = {_task_id(sample): sample for sample in samples}
+    quick_set = set(quick_ids)
+    if not quick_set <= by_id.keys():
+        raise ValueError("quick panel must be contained in the full runtime")
+    return [[by_id[task_id] for task_id in quick_ids],
+            [sample for sample in samples if _task_id(sample) not in quick_set]]
+
+
+def _evaluate(args, config, samples, runtime_manifest, start_rank=0):
+    uids = [str(uuid4()) for _ in samples]
+    uid_by_id = {_task_id(sample): uid for sample, uid in zip(samples, uids, strict=True)}
+    scores, statuses = {}, {}
+    if args.result_path.exists():
+        previous = json.loads(args.result_path.read_text())
+        expected = {"protocol": "shared-react-v1", "model_path": str(args.model_path), "n": args.n,
+                    "task_config_sha256": sha256_file(args.task_config),
+                    "runtime_manifest_sha256": sha256_file(args.runtime_manifest)}
+        if any(previous.get(key) != value for key, value in expected.items()):
+            raise ValueError("evaluation resume settings differ from the saved result")
+        for record in previous["tasks"]:
+            if record["scored_sessions"] >= args.n:
+                uid = uid_by_id[record["task_id"]]
+                scores[uid], statuses[uid] = record["session_scores"], record["status"]
+    manager = LLMServerManager.create(config=config, start_rank=start_rank)
+    adapter = OPDAgentFrameworkRolloutAdapter.create(config=config, llm_client=manager.get_client())
+    begin = time.perf_counter()
+    quick_ids = runtime_manifest["splits"]["quick"]["task_ids"] if args.quick_first else []
+    stages = evaluation_stages(samples, quick_ids)
+
+    def save(selected=samples, output_args=args):
+        _write_result(output_args, samples=selected, uids=[uid_by_id[_task_id(s)] for s in selected],
+                      scores_by_uid=scores, statuses=statuses, wall_seconds=time.perf_counter() - begin,
+                      served_model_name=args.served_model_name, runtime_manifest=runtime_manifest)
+
+    save()
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        for index, stage in enumerate(stages):
+            pending = [s for s in stage if len(scores.get(uid_by_id[_task_id(s)], [])) < args.n]
+            if pending:
+                stage_uids = [uid_by_id[_task_id(s)] for s in pending]
+                future = executor.submit(adapter.generate_sequences_and_wait, _build_prompts(pending, stage_uids))
+                count = -1
+                while True:
+                    done = future.done()
+                    new_scores, new_statuses = _read_scores(stage_uids)
+                    scores.update(new_scores)
+                    statuses.update(new_statuses)
+                    current = sum(len(v) for v in scores.values())
+                    if current != count or done:
+                        save()
+                        count = current
+                    if done:
+                        future.result()
+                        break
+                    time.sleep(5)
+            if args.quick_first and index == 0:
+                quick_args = copy(args)
+                quick_args.split = "quick"
+                quick_args.result_path = args.result_path.with_name("quick_result.json")
+                save(stage, quick_args)
+                print(f"QUICK_COMPLETE model={args.served_model_name}; continuing remaining tasks", flush=True)
+    save()
+    print(f"EVALUATION_COMPLETE model={args.served_model_name}", flush=True)
 
 
 def main() -> None:
@@ -260,6 +348,8 @@ def main() -> None:
     parser.add_argument("--runtime-manifest", type=Path, required=True)
     parser.add_argument("--split", choices=("quick", "full"), required=True)
     parser.add_argument("--model-path", type=Path, required=True)
+    parser.add_argument("--compare-model-path", type=Path)
+    parser.add_argument("--quick-first", action="store_true")
     parser.add_argument("--vllm-cache-root", type=Path, required=True)
     parser.add_argument("--task-config", type=Path, required=True)
     parser.add_argument("--result-path", type=Path, required=True)
@@ -273,6 +363,8 @@ def main() -> None:
     parser.add_argument("--concurrency", type=int, default=16)
     parser.add_argument("--log-dir", type=Path, required=True)
     args = parser.parse_args()
+    if args.quick_first and args.split != "full":
+        parser.error("--quick-first requires --split full")
     if args.n < 1 or args.n_gpus < 1 or args.tensor_parallel_size < 1:
         parser.error("--n, --n-gpus and --tensor-parallel-size must be positive")
     if args.n_gpus % args.tensor_parallel_size:
@@ -285,29 +377,35 @@ def main() -> None:
     )
     served_model_name = args.served_model_name or args.model_path.name
     resolver = TaskConfigResolver.from_file(str(args.task_config))
-    task_configs = list(resolver.defaults_by_name.values())
+    task_names = {sample["extra_info"]["tools_kwargs"]["task"]["name"] for sample in samples}
+    task_configs = [resolver.defaults_by_name[name] for name in sorted(task_names)]
 
     args.vllm_cache_root.mkdir(parents=True, exist_ok=True)
     ray.init(runtime_env={"env_vars": {"VLLM_CACHE_ROOT": str(args.vllm_cache_root)}})
-    config = init_config(args, task_configs=task_configs, served_model_name=served_model_name)
-    tq.init(config.transfer_queue)
-    manager = LLMServerManager.create(config=config)
-    adapter = AgentFrameworkRolloutAdapter.create(config=config, llm_client=manager.get_client())
-    uids = [str(uuid4()) for _ in samples]
-    begin = time.perf_counter()
-    adapter.generate_sequences_and_wait(_build_prompts(samples, uids))
-    wall = time.perf_counter() - begin
-    scores_by_uid, statuses = _read_scores(uids)
-    _write_result(
-        args,
-        samples=samples,
-        uids=uids,
-        scores_by_uid=scores_by_uid,
-        statuses=statuses,
-        wall_seconds=wall,
-        served_model_name=served_model_name,
-        runtime_manifest=runtime_manifest,
-    )
+    args.served_model_name = served_model_name
+    jobs = [args]
+    if args.compare_model_path:
+        other = copy(args)
+        args.result_path = args.result_path.parent / "student" / "result.json"
+        args.log_dir = args.log_dir / "student" / "agents"
+        other.model_path = args.compare_model_path
+        other.served_model_name = other.model_path.name
+        other.result_path = other.result_path.parent / "teacher" / "result.json"
+        other.log_dir = other.log_dir / "teacher" / "agents"
+        jobs.append(other)
+    configs = []
+    for job in jobs:
+        config = init_config(job, task_configs=task_configs, served_model_name=job.served_model_name)
+        configure_coding_rollout(config, job.task_config, task_configs[0]["name"])
+        configs.append(config)
+    tq.init(configs[0].transfer_queue)
+    # One driver owns TransferQueue for both models until both evaluations finish.
+    with ThreadPoolExecutor(max_workers=len(jobs)) as executor:
+        futures = [executor.submit(_evaluate, job, config, samples, runtime_manifest,
+                                   index * args.n_gpus // args.tensor_parallel_size)
+                   for index, (job, config) in enumerate(zip(jobs, configs, strict=True))]
+        for future in futures:
+            future.result()
 
 
 if __name__ == "__main__":

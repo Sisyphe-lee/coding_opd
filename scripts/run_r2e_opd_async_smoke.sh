@@ -21,7 +21,9 @@ export PPO_MINI_BATCH_SIZE="${PPO_MINI_BATCH_SIZE:-16}"
 export PARAMETER_SYNC_STEP="${PARAMETER_SYNC_STEP:-2}"
 export MAX_OFF_POLICY_THRESHOLD="${MAX_OFF_POLICY_THRESHOLD:-2}"
 export MAX_OFF_POLICY_STRATEGY="${MAX_OFF_POLICY_STRATEGY:-drop}"
-export ASYNC_WARMUP_BATCHES="${ASYNC_WARMUP_BATCHES:-1}"
+export ASYNC_WARMUP_BATCHES="${ASYNC_WARMUP_BATCHES:-0}"
+export ASYNC_PREFETCH="${ASYNC_PREFETCH:-true}"
+export FIRST_CHECKPOINT_STEP="${FIRST_CHECKPOINT_STEP:-16}"
 export HYBRID_ROLLOUT_ENABLE_SWITCH="${HYBRID_ROLLOUT_ENABLE_SWITCH:-true}"
 export ROLLOUT_CORRECTION_BYPASS="${ROLLOUT_CORRECTION_BYPASS:-true}"
 # Two batches are intentional: step 1 includes warm-up/JIT, while step 2 is the
@@ -29,7 +31,9 @@ export ROLLOUT_CORRECTION_BYPASS="${ROLLOUT_CORRECTION_BYPASS:-true}"
 export ROLLOUT_BUDGET="${ROLLOUT_BUDGET:-64}"
 export AGENT_WORKERS="${AGENT_WORKERS:-32}"
 export MAX_CONCURRENT_SESSIONS="${MAX_CONCURRENT_SESSIONS:-32}"
-export ROLLOUT_GPU_MEMORY_UTILIZATION="${ROLLOUT_GPU_MEMORY_UTILIZATION:-0.8}"
+# Hybrid vLLM shares Actor cards. Its startup profile precedes lazy optimizer
+# state allocation; leave room for training state when waking the KV cache.
+export ROLLOUT_GPU_MEMORY_UTILIZATION="${ROLLOUT_GPU_MEMORY_UTILIZATION:-0.6}"
 # Keep all eight GPUs productive while leaving bounded headroom on the two
 # standalone rollout GPUs for small, bursty colocated inference workloads.
 export STANDALONE_ROLLOUT_GPU_MEMORY_UTILIZATION="${STANDALONE_ROLLOUT_GPU_MEMORY_UTILIZATION:-0.7}"
