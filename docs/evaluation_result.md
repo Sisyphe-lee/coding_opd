@@ -2,6 +2,9 @@
 
 Teacher：**Qwen3.8-27B**；Student：**Qwen3.5-9B**。
 
+后续默认使用与训练相同的 `configs/coding_react.yaml`（Training ReAct）做 Evaluation；官方
+ReAct 结果仅作为历史基线。除非特别注明，新的 OPD 结果均使用 Training ReAct。
+
 ## Base Model
 
 以下为固定的 OPD 前基线，供后续训练结果反复对比。成功率后括号为成功题数；未测填 `—`。
@@ -33,6 +36,16 @@ Teacher：**Qwen3.8-27B**；Student：**Qwen3.5-9B**。
 | Vanilla OPD / R2E-512 / step 256 / 8,192 trajectories | Shared training ReAct 64K | — | 31.25%（20/64） | — | — |
 | TCOD / R2E-512 / step 256 / 8,192 trajectories | Shared training ReAct 64K | — | 37.50%（24/64） | — | — |
 
+### 关键 Ablation
+
+| Ablation | Checkpoint | 对照结果（Verified-64） | 当前结论 |
+|---|---|---|---|
+| Harness | Vanilla OPD step 256 | Training ReAct 64K **20/64**；官方 ReAct 64K **18/64** | 更换 harness 没有恢复 OPD 性能，harness 不是主要原因 |
+| Harness | Base Student | Training ReAct 64K **30/64**；官方 ReAct 64K **36/64** | Harness 会影响绝对分数，但不能解释 OPD checkpoint 的主要退化 |
+| Harness | Base Teacher | Training ReAct 256K **44/64**；官方 ReAct 256K **44/64** | 两种 ReAct harness 在 256K 下结果一致 |
+| Context length | Vanilla OPD step 256 | Training ReAct 64K **20/64**；256K **17/64** | 更长 context 没有恢复训练后 Student 的性能 |
+| Context length | TCOD step 256 | Training ReAct 64K **24/64**；256K **23/64** | 更长 context 没有恢复训练后 Student 的性能 |
+
 ## 评测口径与备注
 
 Base Model 记录日期：Codex 为 2026-09-07（Baseline v1），ReAct 为 2026-09-10。
@@ -53,7 +66,7 @@ SWE-bench grader；不是 Codex harness，也不是厂商官方成绩。64K / 25
 65,536 / 262,144 tokens（此前口头所称“264K”实际为 256K），最多 100 个 agent steps，
 Student / Teacher 均为 temperature=0.8、top_p=0.9。64K Student 的 agent 超时为
 45 分钟；其余最新 resume 配置为 50 分钟，保留此前已完成结果，因此不是完全统一预算的重测。
-Teacher 256K 包含异常补测及保存补丁的重新判分，不能把四条差异解释成严格的 context-only ablation。
+Teacher 256K 包含异常补测及保存补丁的重新判分；不同结果只能按表中注明的对照解释。
 
 ReAct 异常计分状态（2026-09-10 核对）：
 
@@ -83,5 +96,8 @@ ReAct 异常计分状态（2026-09-10 核对）：
 | Student · ReAct base 256K | `student_react256k_c32_resume_20260910_032649` | — |
 | Student · Shared training ReAct base 64K | `base_student_coding_react64k_verified64_8gpu_20260911` | — |
 | Teacher · Shared training ReAct base 64K | `teacher_coding_react64k_verified64_8gpu_20260911` | — |
+| Teacher · Shared training ReAct base 256K | `teacher_coding_react256k_verified64_8gpu_20260911` | — |
 | Vanilla OPD · Shared training ReAct 64K | `r2e512_vanilla_step256_swebench_verified64_react64k_20260911` | — |
 | TCOD · Shared training ReAct 64K | `r2e512_tcod_step256_swebench_verified64_react64k_20260911` | — |
+| Vanilla OPD · Shared training ReAct 256K | `r2e512_vanilla_step256_coding_react256k_verified64_8gpu_20260912` | — |
+| TCOD · Shared training ReAct 256K | `r2e512_tcod_step256_coding_react256k_verified64_8gpu_20260912` | — |
