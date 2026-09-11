@@ -13,6 +13,7 @@ Teacher：**Qwen3.8-27B**；Student：**Qwen3.5-9B**。
 | Codex 256K | 72.80%（364/500） | 73.44%（47/64） | 42.48%（48/113） | 45.00%（9/20） |
 | ReAct 64K | 48.00%（240/500） | 57.81%（37/64） | — | — |
 | ReAct 256K | 69.20%（346/500） | 68.75%（44/64） | — | — |
+| Shared training ReAct 64K | — | 50.00%（32/64） | — | — |
 
 ### Student
 
@@ -65,7 +66,7 @@ ReAct 异常计分状态（2026-09-10 核对）：
 - 四条 ReAct 的 Verified-64 均已有效判分 64/64，成绩从各自 full 结果按冻结 manifest 抽取。
 - `Shared training ReAct 64K` 使用当前训练共用的 `configs/coding_react.yaml`，直接运行
   Verified-64；上下文 65,536 tokens、最多 100 steps、temperature=0.8、top_p=0.9、
-  top_k=-1，并启用原生重复停止。三条严格对照均使用 8 GPU、两个 TP=4 serving replica，
+  top_k=-1，并启用原生重复停止。四条严格对照均使用 8 GPU、两个 TP=4 serving replica，
   64/64 有效判分，无基础设施失败。
 
 ## 结果来源
@@ -81,5 +82,6 @@ ReAct 异常计分状态（2026-09-10 核对）：
 | Teacher · ReAct base 256K | `teacher_react256k_retry4_20260910` | — |
 | Student · ReAct base 256K | `student_react256k_c32_resume_20260910_032649` | — |
 | Student · Shared training ReAct base 64K | `base_student_coding_react64k_verified64_8gpu_20260911` | — |
+| Teacher · Shared training ReAct base 64K | `teacher_coding_react64k_verified64_8gpu_20260911` | — |
 | Vanilla OPD · Shared training ReAct 64K | `r2e512_vanilla_step256_swebench_verified64_react64k_20260911` | — |
 | TCOD · Shared training ReAct 64K | `r2e512_tcod_step256_swebench_verified64_react64k_20260911` | — |
