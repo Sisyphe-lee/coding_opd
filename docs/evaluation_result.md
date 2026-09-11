@@ -21,6 +21,7 @@ Teacher：**Qwen3.8-27B**；Student：**Qwen3.5-9B**。
 | Codex 256K | 52.00%（260/500） | 53.13%（34/64） | 0.00%（0/113） | 0.00%（0/20） |
 | ReAct 64K | 50.40%（252/500） | 56.25%（36/64） | — | — |
 | ReAct 256K | 53.20%（266/500） | 51.56%（33/64） | — | — |
+| Shared training ReAct 64K | — | 46.88%（30/64） | — | — |
 
 ## OPD
 
@@ -28,6 +29,8 @@ Teacher：**Qwen3.8-27B**；Student：**Qwen3.5-9B**。
 
 | 算法 / Checkpoint | 评测设置 | Verified-500 | Verified-64 | DeepSWE-113 | Tura20 |
 |---|---|---:|---:|---:|---:|
+| Vanilla OPD / R2E-512 / step 256 / 8,192 trajectories | Shared training ReAct 64K | — | 31.25%（20/64） | — | — |
+| TCOD / R2E-512 / step 256 / 8,192 trajectories | Shared training ReAct 64K | — | 37.50%（24/64） | — | — |
 
 ## 评测口径与备注
 
@@ -60,6 +63,10 @@ ReAct 异常计分状态（2026-09-10 核对）：
   `django__django-9296` 已由日志确认是模型补丁破坏测试启动，应算模型失败；
   判分分类代码已修正，但尚未重跑更新原始结果。按失败计入后成功数仍为 266/500。
 - 四条 ReAct 的 Verified-64 均已有效判分 64/64，成绩从各自 full 结果按冻结 manifest 抽取。
+- `Shared training ReAct 64K` 使用当前训练共用的 `configs/coding_react.yaml`，直接运行
+  Verified-64；上下文 65,536 tokens、最多 100 steps、temperature=0.8、top_p=0.9、
+  top_k=-1，并启用原生重复停止。三条严格对照均使用 8 GPU、两个 TP=4 serving replica，
+  64/64 有效判分，无基础设施失败。
 
 ## 结果来源
 
@@ -73,3 +80,6 @@ ReAct 异常计分状态（2026-09-10 核对）：
 | Student · ReAct base 64K | `base_student_teacher_upstream_react64k100_20260909_125617/student` | — |
 | Teacher · ReAct base 256K | `teacher_react256k_retry4_20260910` | — |
 | Student · ReAct base 256K | `student_react256k_c32_resume_20260910_032649` | — |
+| Student · Shared training ReAct base 64K | `base_student_coding_react64k_verified64_8gpu_20260911` | — |
+| Vanilla OPD · Shared training ReAct 64K | `r2e512_vanilla_step256_swebench_verified64_react64k_20260911` | — |
+| TCOD · Shared training ReAct 64K | `r2e512_tcod_step256_swebench_verified64_react64k_20260911` | — |
