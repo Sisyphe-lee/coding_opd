@@ -29,6 +29,15 @@ def _save_run_config(config) -> None:
     temporary.replace(destination)
 
 
+def _load_wandb_api_key(config) -> None:
+    loggers = config.trainer.logger
+    if "wandb" not in ([loggers] if isinstance(loggers, str) else loggers):
+        return
+    path = os.environ.get("CODING_OPD_WANDB_API_KEY_FILE")
+    if path and "WANDB_API_KEY" not in os.environ:
+        os.environ["WANDB_API_KEY"] = Path(path).read_text().strip()
+
+
 def _project_task_runner(main_ppo):
     """Install project optimizations inside the remote veRL task runner."""
 
@@ -43,6 +52,7 @@ def _project_task_runner(main_ppo):
     class CodingOPDTaskRunnerV1(base):
         def run(self, config):
             configure_coding_rollout(config)
+            _load_wandb_api_key(config)
             _save_run_config(config)
             install_pure_distillation_fast_path()
             install_isolated_vllm_compile_cache()

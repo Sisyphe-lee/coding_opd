@@ -13,5 +13,5 @@ Raw logs, per-process profile JSONL, GPU samples, rollouts and checkpoints remai
 under the ignored `runtime/` tree. New training uses `runs/$RUN_NAME`. Resume reads
 `run_record_name` from the source checkpoint root and updates the same directory.
 
-W&B is optional. Keep the default console logger, or set
-`TRAIN_LOGGER="['console','wandb']"` after configuring W&B credentials.
+W&B is enabled automatically when the shared credential file exists at
+`runtime/credentials/wandb_api_key`. `TRAIN_LOGGER` can override the logger list.

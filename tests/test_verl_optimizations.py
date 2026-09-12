@@ -1,3 +1,4 @@
+import os
 import sys
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -5,7 +6,7 @@ from types import ModuleType, SimpleNamespace
 
 from omegaconf import OmegaConf
 
-from coding_opd.train_entrypoint import _project_task_runner, _save_run_config
+from coding_opd.train_entrypoint import _load_wandb_api_key, _project_task_runner, _save_run_config
 from coding_opd.verl_optimizations import (
     _replica_compile_cache_dir,
     _safe_fsdp2_deferred_gradient_sync,
@@ -51,6 +52,17 @@ def test_save_run_config_writes_resolved_yaml(tmp_path, monkeypatch) -> None:
 
     saved = OmegaConf.load(destination)
     assert saved["copy"] == "/models/student"
+
+
+def test_load_wandb_api_key_from_shared_file(tmp_path, monkeypatch) -> None:
+    key_file = tmp_path / "wandb_api_key"
+    key_file.write_text("secret-key\n")
+    monkeypatch.setenv("CODING_OPD_WANDB_API_KEY_FILE", str(key_file))
+    monkeypatch.delenv("WANDB_API_KEY", raising=False)
+
+    _load_wandb_api_key(OmegaConf.create({"trainer": {"logger": ["console", "wandb"]}}))
+
+    assert os.environ["WANDB_API_KEY"] == "secret-key"
 
 
 def test_vllm_compile_cache_is_stable_and_replica_isolated(tmp_path) -> None:

@@ -24,7 +24,14 @@ fi
 LOG_DIR="${LOG_DIR:-${RUNTIME_ROOT}/logs}"
 RUN_NAME="${RUN_NAME:-r2e_opd_smoke_$(date +%Y%m%d_%H%M%S)}"
 EXPERIMENT_NAME="${EXPERIMENT_NAME:-${RUN_NAME}}"
-TRAIN_LOGGER="${TRAIN_LOGGER:-['console']}"
+WANDB_API_KEY_FILE="${WANDB_API_KEY_FILE:-${RUNTIME_ROOT}/credentials/wandb_api_key}"
+if [[ -z "${TRAIN_LOGGER+x}" ]]; then
+    if [[ -r "${WANDB_API_KEY_FILE}" ]]; then
+        TRAIN_LOGGER="['console','wandb']"
+    else
+        TRAIN_LOGGER="['console']"
+    fi
+fi
 # Explicitly empty disables lightweight spans; each run/process gets its own file.
 CODING_OPD_PROFILE_DIR="${CODING_OPD_PROFILE_DIR-${LOG_DIR}/${RUN_NAME}.profile}"
 PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
@@ -435,6 +442,7 @@ training_status=0
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_VLLM_COMPILE_CACHE_ROOT="'${CODING_OPD_VLLM_COMPILE_CACHE_ROOT}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_PROFILE_DIR="'${CODING_OPD_PROFILE_DIR}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_RUN_CONFIG_PATH="'${RUN_CONFIG_PATH}'" \
+    +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_WANDB_API_KEY_FILE="'${WANDB_API_KEY_FILE}'" \
     "${TRAINER_MODE_ARGS[@]}" \
     "${CHECKPOINT_ENGINE_ARGS[@]}" \
     "${TRAINING_BUDGET_ARGS[@]}" \
