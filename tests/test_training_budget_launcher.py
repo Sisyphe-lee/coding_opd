@@ -45,8 +45,9 @@ def test_step_budget_is_not_truncated_by_epoch_guard(tmp_path: Path, algorithm: 
         "TRAIN_BATCH_SIZE": "32",
         "ROLLOUT_BUDGET": "512",
         "TOTAL_EPOCHS": "1",
-        "RUN_NAME": "budget-test",
-    }
+            "RUN_NAME": "budget-test",
+            "RUN_RECORD_DIR": str(tmp_path / "runs" / "budget-test"),
+        }
     subprocess.run(
         ["bash", str(ROOT / "scripts" / "run_r2e_opd_smoke.sh")],
         env=environment,

@@ -31,6 +31,7 @@ CHECKPOINT_DIR="${CHECKPOINT_DIR:-${RUNTIME_ROOT}/checkpoints/${RUN_NAME}}"
 SAVE_FREQ="${SAVE_FREQ:--1}"
 RESUME_MODE="${RESUME_MODE:-disable}"
 RESUME_FROM_PATH="${RESUME_FROM_PATH:-}"
+RUN_RECORD_NAME="${RUN_RECORD_NAME:-}"
 MAX_ACTOR_CKPT_TO_KEEP="${MAX_ACTOR_CKPT_TO_KEEP:-null}"
 ACTOR_CHECKPOINT_SAVE_CONTENTS="${ACTOR_CHECKPOINT_SAVE_CONTENTS:-[model,optimizer,extra]}"
 ACTOR_CHECKPOINT_LOAD_CONTENTS="${ACTOR_CHECKPOINT_LOAD_CONTENTS:-[model,optimizer,extra]}"
@@ -139,6 +140,23 @@ case "${RESUME_MODE}" in
         exit 2
         ;;
 esac
+
+if [[ -z "${RUN_RECORD_NAME}" ]]; then
+    RUN_RECORD_NAME="${RUN_NAME}"
+    if [[ "${RESUME_MODE}" == resume_path ]]; then
+        resume_root="$(dirname "${RESUME_FROM_PATH}")"
+        if [[ -f "${resume_root}/run_record_name" ]]; then
+            RUN_RECORD_NAME="$(<"${resume_root}/run_record_name")"
+        else
+            RUN_RECORD_NAME="$(basename "${resume_root}")"
+        fi
+    fi
+fi
+if [[ ! "${RUN_RECORD_NAME}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    echo "RUN_RECORD_NAME must contain only letters, numbers, dot, underscore or dash" >&2
+    exit 2
+fi
+RUN_RECORD_DIR="${RUN_RECORD_DIR:-${REPO_ROOT}/runs/${RUN_RECORD_NAME}}"
 
 if [[ ! "${SAVE_FREQ}" =~ ^-?[0-9]+$ ]] || (( SAVE_FREQ == 0 || SAVE_FREQ < -1 )); then
     echo "SAVE_FREQ must be -1 (disabled) or a positive integer" >&2
@@ -260,7 +278,8 @@ case "${TRAINER_MODE}" in
         ;;
 esac
 
-mkdir -p "${LOG_DIR}" "${CHECKPOINT_DIR}"
+mkdir -p "${LOG_DIR}" "${CHECKPOINT_DIR}" "${RUN_RECORD_DIR}"
+printf '%s\n' "${RUN_RECORD_NAME}" > "${CHECKPOINT_DIR}/run_record_name"
 cd "${REPO_ROOT}"
 bash scripts/run_podman_service.sh --ensure
 
@@ -281,6 +300,7 @@ if [[ "${IMAGE_PREFLIGHT}" == "true" ]]; then
     "${PYTHON_BIN}" "${IMAGE_PREFLIGHT_SCRIPT}" "${TRAIN_FILE}" --min-rows "${TRAIN_BATCH_SIZE}"
 fi
 
+training_status=0
 "${PYTHON_BIN}" -m coding_opd.train_entrypoint \
     algorithm.adv_estimator=grpo \
     algorithm.use_kl_in_reward=False \
@@ -415,4 +435,26 @@ fi
     "${TRAINER_MODE_ARGS[@]}" \
     "${CHECKPOINT_ENGINE_ARGS[@]}" \
     "${TRAINING_BUDGET_ARGS[@]}" \
-    "$@" 2>&1 | tee "${LOG_DIR}/${RUN_NAME}.log"
+    "$@" 2>&1 | tee "${LOG_DIR}/${RUN_NAME}.log" || training_status=$?
+
+record_status=completed
+if (( training_status != 0 )); then
+    record_status=failed
+fi
+if grep -q 'training/global_step:' "${LOG_DIR}/${RUN_NAME}.log"; then
+    record_args=(
+        --record-dir "${RUN_RECORD_DIR}"
+        --segment "${RUN_NAME}"
+        --log "${LOG_DIR}/${RUN_NAME}.log"
+        --algorithm "${OPD_ALGORITHM}"
+        --status "${record_status}"
+        --checkpoint-dir "${CHECKPOINT_DIR}"
+        --resume-from "${RESUME_FROM_PATH}"
+        --git-commit "$(git rev-parse HEAD)"
+    )
+    if [[ -n "${CODING_OPD_PROFILE_DIR}" ]]; then
+        record_args+=(--profile-dir "${CODING_OPD_PROFILE_DIR}")
+    fi
+    "${PYTHON_BIN}" scripts/export_training_run.py "${record_args[@]}"
+fi
+exit "${training_status}"
