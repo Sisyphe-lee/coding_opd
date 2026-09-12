@@ -14,7 +14,7 @@ checkpoints/
 data/
 outputs/
 logs/
-runtime/
+/runtime
 docker-cache/
 *.safetensors
 *.bin
