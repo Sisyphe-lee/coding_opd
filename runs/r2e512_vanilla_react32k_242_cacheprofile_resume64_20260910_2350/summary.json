@@ -1,0 +1,32 @@
+{
+  "algorithm": "vanilla",
+  "checkpoint_dir": "/personal/coding_opd_runtime/checkpoints/r2e512_vanilla_react32k_242_cacheprofile_resume64_20260910_2350",
+  "final_loss": 0.05611789980321191,
+  "git_commit": "94b9eab34714c709b0df88d2c09f3b9c5f139990",
+  "last_step": 256,
+  "segments": [
+    {
+      "log": "/personal/coding_opd_runtime/logs/r2e512_vanilla_react32k_242_sync_wal_20260910_1630.log",
+      "name": "r2e512_vanilla_react32k_242_sync_wal_20260910_1630",
+      "profile_dir": "",
+      "resume_from": "",
+      "status": "completed"
+    },
+    {
+      "log": "/personal/coding_opd_runtime/logs/r2e512_vanilla_react32k_242_lag1_120s_resume16_20260910_1915.log",
+      "name": "r2e512_vanilla_react32k_242_lag1_120s_resume16_20260910_1915",
+      "profile_dir": "",
+      "resume_from": "/personal/coding_opd_runtime/checkpoints/r2e512_vanilla_react32k_242_sync_wal_20260910_1630/global_step_16",
+      "status": "completed"
+    },
+    {
+      "log": "/personal/coding_opd_runtime/logs/r2e512_vanilla_react32k_242_cacheprofile_resume64_20260910_2350.log",
+      "name": "r2e512_vanilla_react32k_242_cacheprofile_resume64_20260910_2350",
+      "profile_dir": "/personal/coding_opd_runtime/logs/r2e512_vanilla_react32k_242_cacheprofile_resume64_20260910_2350.profile",
+      "resume_from": "/personal/coding_opd_runtime/checkpoints/r2e512_vanilla_react32k_242_lag1_120s_resume16_20260910_1915/global_step_64",
+      "status": "completed"
+    }
+  ],
+  "status": "completed",
+  "steps": 256
+}

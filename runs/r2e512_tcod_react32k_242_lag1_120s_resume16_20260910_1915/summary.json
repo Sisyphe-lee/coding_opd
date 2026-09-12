@@ -1,0 +1,25 @@
+{
+  "algorithm": "tcod",
+  "checkpoint_dir": "/personal/coding_opd_runtime/checkpoints/r2e512_tcod_react32k_242_lag1_120s_resume16_20260910_1915",
+  "final_loss": 0.06399550277274102,
+  "git_commit": "d16f2ba29441d6fe8016fbb9e64c1ecbcb95227c",
+  "last_step": 256,
+  "segments": [
+    {
+      "log": "/personal/coding_opd_runtime/logs/r2e512_tcod_react32k_242_sync_20260910_1451.log",
+      "name": "r2e512_tcod_react32k_242_sync_20260910_1451",
+      "profile_dir": "",
+      "resume_from": "",
+      "status": "completed"
+    },
+    {
+      "log": "/personal/coding_opd_runtime/logs/r2e512_tcod_react32k_242_lag1_120s_resume16_20260910_1915.log",
+      "name": "r2e512_tcod_react32k_242_lag1_120s_resume16_20260910_1915",
+      "profile_dir": "/personal/coding_opd_runtime/logs/r2e512_tcod_react32k_242_lag1_120s_resume16_20260910_1915.profile",
+      "resume_from": "/personal/coding_opd_runtime/checkpoints/r2e512_tcod_react32k_242_sync_20260910_1451/global_step_16",
+      "status": "completed"
+    }
+  ],
+  "status": "completed",
+  "steps": 256
+}
