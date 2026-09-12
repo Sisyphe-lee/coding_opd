@@ -45,9 +45,9 @@ def test_step_budget_is_not_truncated_by_epoch_guard(tmp_path: Path, algorithm: 
         "TRAIN_BATCH_SIZE": "32",
         "ROLLOUT_BUDGET": "512",
         "TOTAL_EPOCHS": "1",
-            "RUN_NAME": "budget-test",
-            "RUN_RECORD_DIR": str(tmp_path / "runs" / "budget-test"),
-        }
+        "RUN_NAME": "budget-test",
+        "RUN_RECORD_DIR": str(tmp_path / "runs" / "budget-test"),
+    }
     subprocess.run(
         ["bash", str(ROOT / "scripts" / "run_r2e_opd_smoke.sh")],
         env=environment,
@@ -77,3 +77,40 @@ def test_step_budget_is_not_truncated_by_epoch_guard(tmp_path: Path, algorithm: 
         f"+ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_PROFILE_DIR='{tmp_path}/logs/budget-test.profile'"
         in arguments
     )
+
+
+def test_resume_reuses_checkpoint_run_record(tmp_path: Path) -> None:
+    fake_python = tmp_path / "python"
+    fake_python.write_text("#!/usr/bin/env bash\n", encoding="utf-8")
+    fake_python.chmod(0o755)
+    train_file = tmp_path / "train.parquet"
+    train_file.write_bytes(b"fixture")
+    resume_root = tmp_path / "old-checkpoints"
+    (resume_root / "global_step_16").mkdir(parents=True)
+    (resume_root / "run_record_name").write_text("logical-run\n")
+    checkpoint_dir = tmp_path / "new-checkpoints"
+
+    environment = os.environ | {
+        "REPO_ROOT": str(ROOT),
+        "RUNTIME_ROOT": str(tmp_path),
+        "PYTHON_BIN": str(fake_python),
+        "TRAIN_FILE": str(train_file),
+        "VAL_FILE": str(train_file),
+        "CHECKPOINT_DIR": str(checkpoint_dir),
+        "LOG_DIR": str(tmp_path / "logs"),
+        "RUN_RECORD_DIR": str(tmp_path / "runs" / "logical-run"),
+        "IMAGE_PREFLIGHT": "false",
+        "CODING_OPD_PODMAN_SERVICE": "false",
+        "RESUME_MODE": "resume_path",
+        "RESUME_FROM_PATH": str(resume_root / "global_step_16"),
+        "RUN_NAME": "resumed-process",
+    }
+    subprocess.run(
+        ["bash", str(ROOT / "scripts" / "run_r2e_opd_smoke.sh")],
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    assert (checkpoint_dir / "run_record_name").read_text() == "logical-run\n"
