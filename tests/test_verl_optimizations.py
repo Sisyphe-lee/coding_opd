@@ -5,7 +5,7 @@ from types import ModuleType, SimpleNamespace
 
 from omegaconf import OmegaConf
 
-from coding_opd.train_entrypoint import _project_task_runner
+from coding_opd.train_entrypoint import _project_task_runner, _save_run_config
 from coding_opd.verl_optimizations import (
     _replica_compile_cache_dir,
     _safe_fsdp2_deferred_gradient_sync,
@@ -40,6 +40,17 @@ def test_project_task_runner_preserves_verl_runner_lifecycle() -> None:
     runner = _project_task_runner(main_ppo)
     actor_class = runner.__ray_metadata__.modified_class
     assert any(base.__name__ == "TaskRunnerV1" for base in actor_class.__mro__)
+
+
+def test_save_run_config_writes_resolved_yaml(tmp_path, monkeypatch) -> None:
+    destination = tmp_path / "config.yaml"
+    monkeypatch.setenv("CODING_OPD_RUN_CONFIG_PATH", str(destination))
+    config = OmegaConf.create({"model": {"path": "/models/student"}, "copy": "${model.path}"})
+
+    _save_run_config(config)
+
+    saved = OmegaConf.load(destination)
+    assert saved["copy"] == "/models/student"
 
 
 def test_vllm_compile_cache_is_stable_and_replica_isolated(tmp_path) -> None:

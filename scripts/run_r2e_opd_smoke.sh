@@ -24,6 +24,7 @@ fi
 LOG_DIR="${LOG_DIR:-${RUNTIME_ROOT}/logs}"
 RUN_NAME="${RUN_NAME:-r2e_opd_smoke_$(date +%Y%m%d_%H%M%S)}"
 EXPERIMENT_NAME="${EXPERIMENT_NAME:-${RUN_NAME}}"
+TRAIN_LOGGER="${TRAIN_LOGGER:-['console']}"
 # Explicitly empty disables lightweight spans; each run/process gets its own file.
 CODING_OPD_PROFILE_DIR="${CODING_OPD_PROFILE_DIR-${LOG_DIR}/${RUN_NAME}.profile}"
 PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
@@ -157,6 +158,7 @@ if [[ ! "${RUN_RECORD_NAME}" =~ ^[A-Za-z0-9._-]+$ ]]; then
     exit 2
 fi
 RUN_RECORD_DIR="${RUN_RECORD_DIR:-${REPO_ROOT}/runs/${RUN_RECORD_NAME}}"
+RUN_CONFIG_PATH="${RUN_RECORD_DIR}/config.yaml"
 
 if [[ ! "${SAVE_FREQ}" =~ ^-?[0-9]+$ ]] || (( SAVE_FREQ == 0 || SAVE_FREQ < -1 )); then
     echo "SAVE_FREQ must be -1 (disabled) or a positive integer" >&2
@@ -415,7 +417,7 @@ training_status=0
     skip.rollout_tq.steps="${ROLLOUT_CACHE_STEPS}" \
     trainer.n_gpus_per_node="${ACTOR_GPUS}" \
     trainer.nnodes=1 \
-    trainer.logger="['console']" \
+    trainer.logger="${TRAIN_LOGGER}" \
     trainer.project_name=coding_opd \
     trainer.experiment_name="${EXPERIMENT_NAME}" \
     trainer.default_local_dir="${CHECKPOINT_DIR}" \
@@ -432,6 +434,7 @@ training_status=0
     +ray_kwargs.ray_init.runtime_env.env_vars.VLLM_DISABLE_COMPILE_CACHE="'${VLLM_DISABLE_COMPILE_CACHE}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_VLLM_COMPILE_CACHE_ROOT="'${CODING_OPD_VLLM_COMPILE_CACHE_ROOT}'" \
     +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_PROFILE_DIR="'${CODING_OPD_PROFILE_DIR}'" \
+    +ray_kwargs.ray_init.runtime_env.env_vars.CODING_OPD_RUN_CONFIG_PATH="'${RUN_CONFIG_PATH}'" \
     "${TRAINER_MODE_ARGS[@]}" \
     "${CHECKPOINT_ENGINE_ARGS[@]}" \
     "${TRAINING_BUDGET_ARGS[@]}" \

@@ -10,6 +10,8 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageFont
+
 
 METRICS = (
     "actor/distillation/loss",
@@ -100,6 +102,55 @@ def write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
     temporary.replace(path)
 
 
+def write_loss_curve(path: Path, rows: list[dict]) -> None:
+    points = [
+        (row["step"], row["actor/distillation/loss"])
+        for row in rows
+        if "actor/distillation/loss" in row
+    ]
+    if not points:
+        return
+
+    width, height = 1000, 500
+    left, top, right, bottom = 80, 45, 25, 60
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    steps, losses = zip(*points)
+    min_step, max_step = min(steps), max(steps)
+    min_loss, max_loss = min(losses), max(losses)
+    if min_loss == max_loss:
+        min_loss -= 0.5
+        max_loss += 0.5
+
+    def xy(step: float, loss: float) -> tuple[float, float]:
+        x_span = max(max_step - min_step, 1)
+        x = left + (step - min_step) / x_span * plot_width
+        y = top + (max_loss - loss) / (max_loss - min_loss) * plot_height
+        return x, y
+
+    image = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default(size=16)
+    for index in range(6):
+        fraction = index / 5
+        y = top + fraction * plot_height
+        value = max_loss - fraction * (max_loss - min_loss)
+        draw.line((left, y, width - right, y), fill="#dddddd", width=1)
+        draw.text((8, y - 8), f"{value:.4f}", fill="#444444", font=font)
+    draw.line((left, top, left, height - bottom), fill="#555555", width=2)
+    draw.line((left, height - bottom, width - right, height - bottom), fill="#555555", width=2)
+    draw.line([xy(step, loss) for step, loss in points], fill="#2878b5", width=2)
+    draw.text((left, 12), "Distillation loss", fill="#222222", font=font)
+    draw.text((left, height - 38), f"step {min_step}", fill="#444444", font=font)
+    end_label = f"step {max_step}"
+    end_width = draw.textbbox((0, 0), end_label, font=font)[2]
+    draw.text((width - right - end_width, height - 38), end_label, fill="#444444", font=font)
+
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    image.save(temporary, format="PNG")
+    temporary.replace(path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--record-dir", type=Path, required=True)
@@ -146,6 +197,7 @@ def main() -> None:
 
     metric_rows = [metrics[step] for step in sorted(metrics)]
     write_csv(args.record_dir / "metrics.csv", ["step", *METRICS], metric_rows)
+    write_loss_curve(args.record_dir / "loss_curve.png", metric_rows)
     write_csv(
         args.record_dir / "profile_summary.csv",
         ["segment", "event", "count", "total_s", "mean_s", "max_s", "errors"],

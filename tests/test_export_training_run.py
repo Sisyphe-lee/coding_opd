@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from PIL import Image
+
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "export_training_run.py"
 
@@ -57,6 +59,9 @@ def test_export_merges_resume_steps_and_profiles(tmp_path):
     assert [row["step"] for row in rows] == ["1", "2", "3"]
     assert rows[1]["actor/distillation/loss"] == "0.14"
     assert rows[2]["actor/distillation/loss"] == "0.1"
+    with Image.open(record / "loss_curve.png") as plot:
+        assert plot.format == "PNG"
+        assert plot.size == (1000, 500)
 
     with (record / "profile_summary.csv").open() as handle:
         profiles = list(csv.DictReader(handle))
